@@ -104,7 +104,10 @@ class InputHandler {
                     e.preventDefault();
                     break;
                 case 'p':
-                    game.togglePause();
+                    // Toggle pause - will be handled by game instance
+                    if (typeof window.game !== 'undefined') {
+                        window.game.togglePause();
+                    }
                     break;
             }
         });
@@ -155,11 +158,11 @@ class InputHandler {
             });
         };
 
-        addTouchListeners(mobileJump, 'jump');
-        addTouchListeners(mobileLeft, 'left');
-        addTouchListeners(mobileRight, 'right');
-        addTouchListeners(mobileUp, 'up');
-        addTouchListeners(mobileDown, 'down');
+        if (mobileJump) addTouchListeners(mobileJump, 'jump');
+        if (mobileLeft) addTouchListeners(mobileLeft, 'left');
+        if (mobileRight) addTouchListeners(mobileRight, 'right');
+        if (mobileUp) addTouchListeners(mobileUp, 'up');
+        if (mobileDown) addTouchListeners(mobileDown, 'down');
     }
 
     reset() {
@@ -201,9 +204,11 @@ class Player {
         }
 
         // Handle jumping
-        if (input.keys.jump && this.onGround) {
+        if (input.keys.jump && this.onGround && !this.climbing) {
             this.velocityY = CONFIG.jumpForce;
-            game.playSound('jump');
+            if (typeof window.game !== 'undefined') {
+                window.game.playSound('jump');
+            }
         }
 
         // Update position
@@ -211,7 +216,9 @@ class Player {
         this.y += this.velocityY;
 
         // Boundary checking
-        this.x = Math.max(0, Math.min(game.canvas.width - this.width, this.x));
+        if (typeof window.game !== 'undefined') {
+            this.x = Math.max(0, Math.min(window.game.canvas.width - this.width, this.x));
+        }
 
         // Check if on ladder
         this.climbing = false;
@@ -219,7 +226,7 @@ class Player {
             if (this.isColliding(ladder)) {
                 this.climbing = true;
                 if (input.keys.up) this.y -= CONFIG.climbSpeed;
-                if (input.keys.down && this.y < game.canvas.height - this.height) {
+                if (input.keys.down && this.y < window.game.canvas.height - this.height) {
                     this.y += CONFIG.climbSpeed;
                 }
                 break;
@@ -269,7 +276,8 @@ class Player {
 
     draw(ctx) {
         // Robot body
-        ctx.fillStyle = game.state.invulnerable ? '#00aaff' : '#4fc3ff';
+        const isInvulnerable = window.game ? window.game.state.invulnerable : false;
+        ctx.fillStyle = isInvulnerable ? '#00aaff' : '#4fc3ff';
         ctx.fillRect(this.x, this.y, this.width, this.height);
 
         // Robot head
@@ -287,7 +295,7 @@ class Player {
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        if (game.state.invulnerable) {
+        if (isInvulnerable) {
             ctx.arc(this.x + this.width/2, this.y + this.height * 0.7, 8, 0, Math.PI);
         } else {
             ctx.moveTo(this.x + this.width/3, this.y + this.height * 0.7);
@@ -296,7 +304,7 @@ class Player {
         ctx.stroke();
 
         // Invulnerability effect
-        if (game.state.invulnerable) {
+        if (isInvulnerable) {
             const time = Date.now() / 100;
             const pulse = Math.sin(time) * 5 + 10;
             
@@ -340,12 +348,16 @@ class Game {
         this.setupEventListeners();
         this.setupJoystick();
         
+        // Show start screen
+        this.showStartScreen();
+        
         // Start game loop
         this.gameLoop();
     }
 
     cacheDomElements() {
         return {
+            // Game UI
             robotCount: document.getElementById('robot-count'),
             energyValue: document.getElementById('energy-value'),
             energyFill: document.getElementById('energy-fill'),
@@ -358,22 +370,29 @@ class Game {
             ringCount: document.getElementById('ring-count'),
             invTime: document.getElementById('inv-time'),
             bombCount: document.getElementById('bomb-count'),
+            
+            // Sound
             soundToggle: document.getElementById('sound-toggle'),
             soundIcon: document.getElementById('sound-icon'),
-            startMessage: document.getElementById('start-message'),
+            
+            // Screens
+            startScreen: document.getElementById('start-screen'),
             startButton: document.getElementById('start-button'),
+            toggleSoundStart: document.getElementById('toggle-sound-start'),
+            
             levelCompleteMessage: document.getElementById('level-complete-message'),
             levelCompleteText: document.getElementById('level-complete-text'),
             nextLevelButton: document.getElementById('next-level-button'),
+            mainMenuButton: document.getElementById('main-menu-button'),
+            
             gameOverMessage: document.getElementById('game-over-message'),
             gameOverText: document.getElementById('game-over-text'),
             restartButton: document.getElementById('restart-button'),
+            backToMenu: document.getElementById('back-to-menu'),
+            
             pauseMessage: document.getElementById('pause-message'),
             resumeButton: document.getElementById('resume-button'),
-            instructionsPanel: document.getElementById('instructions-panel'),
-            hideInstructions: document.getElementById('hide-instructions'),
-            showInstructionsBtn: document.getElementById('show-instructions-btn'),
-            viewControls: document.getElementById('view-controls')
+            pauseToMenu: document.getElementById('pause-to-menu')
         };
     }
 
@@ -381,23 +400,61 @@ class Game {
         // Set canvas size
         this.resizeCanvas();
         
-        // Show start message
-        this.showStartMessage();
-        
-        // Load first level
+        // Load first level (but don't show it yet)
         this.loadLevel(1);
+        
+        // Add stats styles
+        this.addStatsStyles();
     }
 
     resizeCanvas() {
-        this.canvas.width = this.canvas.parentElement.clientWidth;
-        this.canvas.height = this.canvas.parentElement.clientHeight;
+        const container = this.canvas.parentElement;
+        if (container) {
+            this.canvas.width = container.clientWidth;
+            this.canvas.height = container.clientHeight;
+        }
     }
 
-    showStartMessage() {
-        this.domElements.startMessage.style.display = 'block';
-        this.domElements.levelCompleteMessage.style.display = 'none';
-        this.domElements.gameOverMessage.style.display = 'none';
-        this.domElements.pauseMessage.style.display = 'none';
+    showStartScreen() {
+        if (this.domElements.startScreen) {
+            this.domElements.startScreen.style.display = 'block';
+        }
+        if (this.domElements.levelCompleteMessage) {
+            this.domElements.levelCompleteMessage.style.display = 'none';
+        }
+        if (this.domElements.gameOverMessage) {
+            this.domElements.gameOverMessage.style.display = 'none';
+        }
+        if (this.domElements.pauseMessage) {
+            this.domElements.pauseMessage.style.display = 'none';
+        }
+        
+        // Hide game elements
+        const gameCanvas = document.querySelector('#game-canvas-container');
+        const controlsPanel = document.querySelector('.controls-panel');
+        if (gameCanvas) gameCanvas.style.display = 'none';
+        if (controlsPanel) controlsPanel.style.display = 'none';
+        
+        this.state.gameRunning = false;
+    }
+
+    showGameScreen() {
+        if (this.domElements.startScreen) {
+            this.domElements.startScreen.style.display = 'none';
+        }
+        
+        // Show game elements
+        const gameCanvas = document.querySelector('#game-canvas-container');
+        const controlsPanel = document.querySelector('.controls-panel');
+        if (gameCanvas) gameCanvas.style.display = 'block';
+        if (controlsPanel) controlsPanel.style.display = 'grid';
+        
+        this.state.gameRunning = true;
+        this.playSound('start');
+    }
+
+    showMainMenu() {
+        this.showStartScreen();
     }
 
     loadLevel(level) {
@@ -544,57 +601,87 @@ class Game {
     }
 
     updateLevelDisplay(level) {
-        this.domElements.level.textContent = level;
-        this.domElements.levelName.textContent = CONFIG.levelNames[level - 1] || `Circuit Level ${level}`;
+        if (this.domElements.level) {
+            this.domElements.level.textContent = level;
+        }
+        if (this.domElements.levelName) {
+            this.domElements.levelName.textContent = CONFIG.levelNames[level - 1] || `Circuit Level ${level}`;
+        }
     }
 
     loadQuestion() {
         this.state.currentQuestion = getRandomQuestion(this.state.currentLevel);
-        this.domElements.questionText.textContent = this.state.currentQuestion.question;
+        if (this.domElements.questionText && this.state.currentQuestion) {
+            this.domElements.questionText.textContent = this.state.currentQuestion.question;
+        }
         
         // Clear options
-        this.domElements.optionsContainer.innerHTML = '';
-        
-        // Add options
-        this.state.currentQuestion.options.forEach((option, index) => {
-            const optionEl = document.createElement('div');
-            optionEl.className = 'option';
-            optionEl.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
-            optionEl.dataset.index = index;
+        if (this.domElements.optionsContainer) {
+            this.domElements.optionsContainer.innerHTML = '';
             
-            optionEl.addEventListener('click', () => {
-                if (!this.state.questionAnswered) {
-                    document.querySelectorAll('.option').forEach(opt => {
-                        opt.classList.remove('selected');
+            // Add options
+            if (this.state.currentQuestion) {
+                this.state.currentQuestion.options.forEach((option, index) => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'option';
+                    optionEl.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                    optionEl.dataset.index = index;
+                    
+                    optionEl.addEventListener('click', () => {
+                        if (!this.state.questionAnswered) {
+                            document.querySelectorAll('.option').forEach(opt => {
+                                opt.classList.remove('selected');
+                            });
+                            optionEl.classList.add('selected');
+                            this.state.selectedOption = index;
+                        }
                     });
-                    optionEl.classList.add('selected');
-                    this.state.selectedOption = index;
-                }
-            });
-            
-            this.domElements.optionsContainer.appendChild(optionEl);
-        });
+                    
+                    this.domElements.optionsContainer.appendChild(optionEl);
+                });
+            }
+        }
         
         this.state.questionAnswered = false;
         this.state.selectedOption = null;
-        this.domElements.submitAnswerBtn.disabled = false;
+        if (this.domElements.submitAnswerBtn) {
+            this.domElements.submitAnswerBtn.disabled = false;
+        }
     }
 
     updateUI() {
-        this.domElements.robotCount.textContent = this.state.robots;
-        this.domElements.energyValue.textContent = Math.floor(this.state.energy);
-        this.domElements.energyFill.style.width = `${this.state.energy}%`;
-        this.domElements.score.textContent = this.state.score;
-        this.domElements.ringCount.textContent = this.state.rings;
-        this.domElements.invTime.textContent = `${Math.floor(this.state.invulnerabilityTime/60)}s`;
-        this.domElements.bombCount.textContent = this.state.bombs;
+        if (this.domElements.robotCount) {
+            this.domElements.robotCount.textContent = this.state.robots;
+        }
+        if (this.domElements.energyValue) {
+            this.domElements.energyValue.textContent = Math.floor(this.state.energy);
+        }
+        if (this.domElements.energyFill) {
+            this.domElements.energyFill.style.width = `${this.state.energy}%`;
+        }
+        if (this.domElements.score) {
+            this.domElements.score.textContent = this.state.score;
+        }
+        if (this.domElements.ringCount) {
+            this.domElements.ringCount.textContent = this.state.rings;
+        }
+        if (this.domElements.invTime) {
+            this.domElements.invTime.textContent = `${Math.floor(this.state.invulnerabilityTime/60)}s`;
+        }
+        if (this.domElements.bombCount) {
+            this.domElements.bombCount.textContent = this.state.bombs;
+        }
         
         // Update power-up displays
-        document.querySelector('.power-up.invulnerable').classList.toggle('active', this.state.invulnerable);
+        const invulnerableElement = document.querySelector('.power-up.invulnerable');
+        if (invulnerableElement) {
+            invulnerableElement.classList.toggle('active', this.state.invulnerable);
+        }
     }
 
     gameLoop() {
-        if (!this.state.gameRunning || this.state.paused) {
+        if (!this.state.gameRunning || this.state.paused || 
+            (this.domElements.startScreen && this.domElements.startScreen.style.display !== 'none')) {
             requestAnimationFrame(() => this.gameLoop());
             return;
         }
@@ -769,7 +856,7 @@ class Game {
     checkGameConditions() {
         // Check if all power pills collected (optional objective)
         const allPillsCollected = this.powerPills.every(pill => pill.collected);
-        if (allPillsCollected && this.doors[0].locked) {
+        if (allPillsCollected && this.doors.length > 0 && this.doors[0].locked) {
             this.doors[0].locked = false;
             this.playSound('unlock');
         }
@@ -1027,14 +1114,29 @@ class Game {
         const energyBonus = Math.floor(this.state.energy) * 100;
         this.state.score += energyBonus;
         
-        this.domElements.levelCompleteText.innerHTML = `
-            Level ${this.state.currentLevel} Complete!<br>
-            Energy Bonus: ${energyBonus} points<br>
-            Total Score: ${this.state.score} points<br>
-            <small>Circuit Accuracy: ${this.state.getAccuracy()}%</small>
-        `;
+        if (this.domElements.levelCompleteText) {
+            this.domElements.levelCompleteText.innerHTML = `
+                <h3>Level ${this.state.currentLevel} Complete!</h3>
+                <div class="level-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Energy Bonus:</span>
+                        <span class="stat-value">${energyBonus} points</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Score:</span>
+                        <span class="stat-value">${this.state.score} points</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Circuit Accuracy:</span>
+                        <span class="stat-value">${this.state.getAccuracy()}%</span>
+                    </div>
+                </div>
+            `;
+        }
         
-        this.domElements.levelCompleteMessage.style.display = 'block';
+        if (this.domElements.levelCompleteMessage) {
+            this.domElements.levelCompleteMessage.style.display = 'block';
+        }
         this.playSound('levelComplete');
     }
 
@@ -1042,53 +1144,212 @@ class Game {
         this.state.gameOver = true;
         this.state.gameRunning = false;
         
-        this.domElements.gameOverText.innerHTML = `
-            All robots deactivated!<br>
-            Final Score: ${this.state.score} points<br>
-            Levels Completed: ${this.state.currentLevel - 1}<br>
-            Circuit Accuracy: ${this.state.getAccuracy()}%
-        `;
+        if (this.domElements.gameOverText) {
+            this.domElements.gameOverText.innerHTML = `
+                <h3>Factory Shutdown!</h3>
+                <div class="game-over-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Final Score:</span>
+                        <span class="stat-value">${this.state.score} points</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Levels Completed:</span>
+                        <span class="stat-value">${this.state.currentLevel - 1}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Circuit Accuracy:</span>
+                        <span class="stat-value">${this.state.getAccuracy()}%</span>
+                    </div>
+                </div>
+                <p>Try again to beat your score!</p>
+            `;
+        }
         
-        this.domElements.gameOverMessage.style.display = 'block';
+        if (this.domElements.gameOverMessage) {
+            this.domElements.gameOverMessage.style.display = 'block';
+        }
         this.playSound('gameOver');
     }
 
     playSound(type) {
         if (!this.state.soundEnabled) return;
         
-        // Sound effects would be implemented here
-        console.log(`Sound: ${type}`);
-        
-        // Example implementation with Web Audio API:
-        /*
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // Different sounds for different events
-        switch(type) {
-            case 'jump':
-                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                break;
-            case 'collect':
-                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime); // E5
-                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-                break;
-            // ... other sounds
+        // In a full implementation, you would use the Web Audio API
+        // For this demo, we'll create simple beep sounds
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Different sounds for different events
+            switch(type) {
+                case 'jump':
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+                    
+                case 'collect':
+                    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime); // E5
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                    break;
+                    
+                case 'ring':
+                    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime); // G5
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                    
+                case 'destroy':
+                    // Fireball destruction sound
+                    oscillator.frequency.setValueAtTime(392.00, audioContext.currentTime); // G4
+                    oscillator.frequency.exponentialRampToValueAtTime(261.63, audioContext.currentTime + 0.2); // C4
+                    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                    
+                case 'hit':
+                    // Player hit sound
+                    oscillator.frequency.setValueAtTime(220.00, audioContext.currentTime); // A3
+                    oscillator.frequency.exponentialRampToValueAtTime(110.00, audioContext.currentTime + 0.1); // A2
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+                    
+                case 'correct':
+                    // Correct answer sound
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                    oscillator.frequency.exponentialRampToValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                    oscillator.frequency.exponentialRampToValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                    
+                case 'wrong':
+                    // Wrong answer sound
+                    oscillator.frequency.setValueAtTime(349.23, audioContext.currentTime); // F4
+                    oscillator.frequency.exponentialRampToValueAtTime(293.66, audioContext.currentTime + 0.1); // D4
+                    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+                    
+                case 'start':
+                    // Game start sound
+                    oscillator.frequency.setValueAtTime(261.63, audioContext.currentTime); // C4
+                    oscillator.frequency.exponentialRampToValueAtTime(523.25, audioContext.currentTime + 0.3); // C5
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.4);
+                    break;
+                    
+                case 'levelComplete':
+                    // Level complete sound
+                    const frequencies = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    let currentTime = audioContext.currentTime;
+                    
+                    frequencies.forEach((freq, index) => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        
+                        osc.frequency.setValueAtTime(freq, currentTime);
+                        gain.gain.setValueAtTime(0.1, currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.1);
+                        
+                        osc.start(currentTime);
+                        osc.stop(currentTime + 0.1);
+                        currentTime += 0.1;
+                    });
+                    break;
+                    
+                case 'gameOver':
+                    // Game over sound
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                    oscillator.frequency.exponentialRampToValueAtTime(261.63, audioContext.currentTime + 0.5); // C4
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.6);
+                    break;
+                    
+                case 'unlock':
+                    // Door unlock sound
+                    oscillator.frequency.setValueAtTime(392.00, audioContext.currentTime); // G4
+                    oscillator.frequency.exponentialRampToValueAtTime(523.25, audioContext.currentTime + 0.2); // C5
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                    
+                case 'explosion':
+                    // Explosion sound
+                    oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.4);
+                    break;
+                    
+                case 'lose':
+                    // Lose robot sound
+                    oscillator.frequency.setValueAtTime(349.23, audioContext.currentTime); // F4
+                    oscillator.frequency.exponentialRampToValueAtTime(174.61, audioContext.currentTime + 0.2); // F3
+                    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                    
+                case 'click':
+                    // Button click sound
+                    oscillator.frequency.setValueAtTime(440.00, audioContext.currentTime); // A4
+                    gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.05);
+                    break;
+                    
+                case 'pause':
+                    // Pause sound
+                    oscillator.frequency.setValueAtTime(329.63, audioContext.currentTime); // E4
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                    break;
+            }
+        } catch (error) {
+            console.log(`Sound effect: ${type}`);
         }
-        
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.1);
-        */
     }
 
     togglePause() {
         this.state.paused = !this.state.paused;
-        this.domElements.pauseMessage.style.display = this.state.paused ? 'block' : 'none';
+        if (this.domElements.pauseMessage) {
+            this.domElements.pauseMessage.style.display = this.state.paused ? 'block' : 'none';
+        }
         
         if (this.state.paused) {
             this.playSound('pause');
@@ -1097,71 +1358,135 @@ class Game {
 
     setupEventListeners() {
         // Start button
-        this.domElements.startButton.addEventListener('click', () => {
-            this.domElements.startMessage.style.display = 'none';
-            this.state.gameRunning = true;
-        });
+        if (this.domElements.startButton) {
+            this.domElements.startButton.addEventListener('click', () => {
+                this.showGameScreen();
+            });
+        }
+
+        // Toggle sound on start screen
+        if (this.domElements.toggleSoundStart) {
+            this.domElements.toggleSoundStart.addEventListener('click', () => {
+                this.state.soundEnabled = !this.state.soundEnabled;
+                const icon = this.domElements.toggleSoundStart.querySelector('i');
+                if (icon) {
+                    icon.className = this.state.soundEnabled ? 
+                        'fas fa-volume-up' : 
+                        'fas fa-volume-mute';
+                }
+                this.playSound('click');
+            });
+        }
+
+        // Main menu buttons
+        if (this.domElements.mainMenuButton) {
+            this.domElements.mainMenuButton.addEventListener('click', () => {
+                this.showMainMenu();
+                this.playSound('click');
+            });
+        }
+
+        if (this.domElements.backToMenu) {
+            this.domElements.backToMenu.addEventListener('click', () => {
+                this.showMainMenu();
+                this.playSound('click');
+            });
+        }
+
+        if (this.domElements.pauseToMenu) {
+            this.domElements.pauseToMenu.addEventListener('click', () => {
+                this.togglePause();
+                this.showMainMenu();
+                this.playSound('click');
+            });
+        }
 
         // Next level button
-        this.domElements.nextLevelButton.addEventListener('click', () => {
-            this.domElements.levelCompleteMessage.style.display = 'none';
-            if (this.state.currentLevel < CONFIG.levels) {
-                this.state.currentLevel++;
-                this.loadLevel(this.state.currentLevel);
-                this.state.gameRunning = true;
-            } else {
-                // Game completed
-                this.domElements.gameOverText.innerHTML = `
-                    Congratulations! You completed all ${CONFIG.levels} levels!<br>
-                    Final Score: ${this.state.score} points<br>
-                    Master Circuit Engineer!
-                `;
-                this.domElements.gameOverMessage.style.display = 'block';
-            }
-        });
+        if (this.domElements.nextLevelButton) {
+            this.domElements.nextLevelButton.addEventListener('click', () => {
+                if (this.domElements.levelCompleteMessage) {
+                    this.domElements.levelCompleteMessage.style.display = 'none';
+                }
+                if (this.state.currentLevel < CONFIG.levels) {
+                    this.state.currentLevel++;
+                    this.loadLevel(this.state.currentLevel);
+                    this.state.gameRunning = true;
+                    this.playSound('click');
+                } else {
+                    // Game completed
+                    if (this.domElements.gameOverText) {
+                        this.domElements.gameOverText.innerHTML = `
+                            <h3>Congratulations!</h3>
+                            <div class="game-over-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Final Score:</span>
+                                    <span class="stat-value">${this.state.score} points</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Levels Completed:</span>
+                                    <span class="stat-value">${CONFIG.levels}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Circuit Accuracy:</span>
+                                    <span class="stat-value">${this.state.getAccuracy()}%</span>
+                                </div>
+                            </div>
+                            <p>You've mastered all circuit challenges! 🎉</p>
+                        `;
+                    }
+                    if (this.domElements.gameOverMessage) {
+                        this.domElements.gameOverMessage.style.display = 'block';
+                    }
+                    this.playSound('levelComplete');
+                }
+            });
+        }
 
         // Restart button
-        this.domElements.restartButton.addEventListener('click', () => {
-            this.state = new GameState();
-            this.loadLevel(1);
-            this.showStartMessage();
-        });
+        if (this.domElements.restartButton) {
+            this.domElements.restartButton.addEventListener('click', () => {
+                this.state = new GameState();
+                this.loadLevel(1);
+                this.showStartScreen();
+                this.playSound('click');
+            });
+        }
 
         // Resume button
-        this.domElements.resumeButton.addEventListener('click', () => {
-            this.togglePause();
-        });
+        if (this.domElements.resumeButton) {
+            this.domElements.resumeButton.addEventListener('click', () => {
+                this.togglePause();
+                this.playSound('click');
+            });
+        }
 
         // Submit answer button
-        this.domElements.submitAnswerBtn.addEventListener('click', () => {
-            this.submitAnswer();
-        });
+        if (this.domElements.submitAnswerBtn) {
+            this.domElements.submitAnswerBtn.addEventListener('click', () => {
+                this.submitAnswer();
+                this.playSound('click');
+            });
+        }
 
-        // Sound toggle
-        this.domElements.soundToggle.addEventListener('click', () => {
-            this.state.soundEnabled = !this.state.soundEnabled;
-            this.domElements.soundIcon.className = this.state.soundEnabled ? 
-                'fas fa-volume-up sound-icon' : 
-                'fas fa-volume-mute sound-icon';
-        });
-
-        // Instructions
-        this.domElements.hideInstructions.addEventListener('click', () => {
-            this.domElements.instructionsPanel.style.display = 'none';
-        });
-
-        this.domElements.showInstructionsBtn.addEventListener('click', () => {
-            this.domElements.instructionsPanel.style.display = 'block';
-        });
-
-        this.domElements.viewControls.addEventListener('click', () => {
-            this.domElements.instructionsPanel.style.display = 'block';
-        });
+        // Sound toggle in game
+        if (this.domElements.soundToggle) {
+            this.domElements.soundToggle.addEventListener('click', () => {
+                this.state.soundEnabled = !this.state.soundEnabled;
+                if (this.domElements.soundIcon) {
+                    this.domElements.soundIcon.className = this.state.soundEnabled ? 
+                        'fas fa-volume-up sound-icon' : 
+                        'fas fa-volume-mute sound-icon';
+                }
+                this.playSound('click');
+            });
+        }
 
         // Window resize
         window.addEventListener('resize', () => {
             this.resizeCanvas();
-            this.loadLevel(this.state.currentLevel); // Reload level to reposition everything
+            if (this.state.gameRunning && !this.state.paused) {
+                this.loadLevel(this.state.currentLevel); // Reload level to reposition everything
+            }
         });
     }
 
@@ -1169,30 +1494,29 @@ class Game {
         const joystick = document.getElementById('joystick');
         const joystickHandle = document.getElementById('joystick-handle');
         
+        if (!joystick || !joystickHandle) return;
+        
         let joystickCenterX = 0;
         let joystickCenterY = 0;
         let joystickRadius = 0;
 
-        function initJoystick() {
+        const initJoystick = () => {
             const rect = joystick.getBoundingClientRect();
             joystickCenterX = rect.left + rect.width / 2;
             joystickCenterY = rect.top + rect.height / 2;
             joystickRadius = rect.width / 2 - 30;
-        }
+        };
 
-        joystickHandle.addEventListener('mousedown', startJoystickControl);
-        joystickHandle.addEventListener('touchstart', startJoystickControl);
-
-        function startJoystickControl(e) {
+        const startJoystickControl = (e) => {
             e.preventDefault();
             this.state.joystickActive = true;
             document.addEventListener('mousemove', moveJoystick);
             document.addEventListener('touchmove', moveJoystick);
             document.addEventListener('mouseup', endJoystickControl);
             document.addEventListener('touchend', endJoystickControl);
-        }
+        };
 
-        function moveJoystick(e) {
+        const moveJoystick = (e) => {
             if (!this.state.joystickActive) return;
             
             e.preventDefault();
@@ -1219,9 +1543,9 @@ class Game {
             this.input.keys.up = moveY < -threshold;
             this.input.keys.down = moveY > threshold;
             this.input.keys.jump = distance > joystickRadius * 0.8 && moveY < -threshold;
-        }
+        };
 
-        function endJoystickControl() {
+        const endJoystickControl = () => {
             this.state.joystickActive = false;
             joystickHandle.style.transform = 'translate(-50%, -50%)';
             
@@ -1235,15 +1559,14 @@ class Game {
             document.removeEventListener('touchmove', moveJoystick);
             document.removeEventListener('mouseup', endJoystickControl);
             document.removeEventListener('touchend', endJoystickControl);
-        }
+        };
 
-        // Bind functions to game instance
-        startJoystickControl = startJoystickControl.bind(this);
-        moveJoystick = moveJoystick.bind(this);
-        endJoystickControl = endJoystickControl.bind(this);
+        joystickHandle.addEventListener('mousedown', startJoystickControl);
+        joystickHandle.addEventListener('touchstart', startJoystickControl);
 
         initJoystick();
         window.addEventListener('load', initJoystick);
+        window.addEventListener('resize', initJoystick);
     }
 
     submitAnswer() {
@@ -1263,11 +1586,15 @@ class Game {
         
         this.state.questionAnswered = true;
         this.state.updateStats(isCorrect);
-        this.domElements.submitAnswerBtn.disabled = true;
+        if (this.domElements.submitAnswerBtn) {
+            this.domElements.submitAnswerBtn.disabled = true;
+        }
         
         if (isCorrect) {
             // Unlock door
-            this.doors[0].locked = false;
+            if (this.doors.length > 0) {
+                this.doors[0].locked = false;
+            }
             this.state.score += 500;
             this.playSound('correct');
         } else {
@@ -1279,10 +1606,47 @@ class Game {
         
         this.updateUI();
     }
+
+    addStatsStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .level-stats, .game-over-stats {
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+            
+            .stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .stat-item:last-child {
+                border-bottom: none;
+            }
+            
+            .stat-label {
+                color: #a0d0ff;
+                font-size: 1.1rem;
+            }
+            
+            .stat-value {
+                color: #ffcc00;
+                font-weight: bold;
+                font-size: 1.2rem;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 // Initialize game when page loads
 let game;
 window.addEventListener('load', () => {
     game = new Game();
+    window.game = game; // Make game globally accessible for input handler
 });
