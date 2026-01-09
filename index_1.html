@@ -1,0 +1,3129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Robot: Circuit Factory Adventure</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* All CSS from style.css goes here */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a1625 0%, #1a2b3e 100%);
+            color: #e0f0ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            width: 100%;
+            border-bottom: 2px solid #2a5a8c;
+            margin-bottom: 20px;
+            background: rgba(10, 30, 60, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            color: #00f0ff;
+            font-size: 2.8rem;
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.7);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            color: #80d0ff;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        /* Game Container */
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Game Canvas */
+        #game-canvas-container {
+            position: relative;
+            background: #0f1a2d;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #2a5a8c;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            height: 700px;
+            display: none;
+        }
+
+        #game-canvas {
+            display: block;
+            background: #0a1425;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Game UI Overlay */
+        .game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            pointer-events: none;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .robots-left {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 2px solid #00a0ff;
+            pointer-events: auto;
+        }
+
+        .robot-icon {
+            font-size: 1.8rem;
+            color: #ff3333;
+            margin-right: 10px;
+        }
+
+        .robot-count {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .energy-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: 2px solid #00ff88;
+            min-width: 200px;
+        }
+
+        .energy-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .energy-bar {
+            height: 20px;
+            background: #152642;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(to right, #00ff88, #00cc66);
+            border-radius: 10px;
+            width: 100%;
+            transition: width 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .energy-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                transparent 100%);
+            animation: energyShine 2s infinite;
+        }
+
+        @keyframes energyShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .score-display {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: 2px solid #ffcc00;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+
+        .level-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: 2px solid #aa66ff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #aa66ff;
+            text-align: center;
+            margin-top: 20px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(20, 40, 80, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            border: 2px solid #3a7abc;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            height: fit-content;
+            display: none;
+        }
+
+        .panel-title {
+            color: #4fc3ff;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            text-align: center;
+            border-bottom: 2px solid #3a7abc;
+            padding-bottom: 15px;
+        }
+
+        .circuit-question {
+            background: rgba(30, 60, 120, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 5px solid #00a0ff;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            color: #e0f0ff;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background: rgba(40, 80, 140, 0.7);
+            border: 2px solid #2a5a8c;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+            pointer-events: auto;
+        }
+
+        .option:hover {
+            background: rgba(50, 100, 160, 0.9);
+            border-color: #4fc3ff;
+            transform: translateY(-2px);
+        }
+
+        .option.selected {
+            background: rgba(30, 100, 200, 0.7);
+            border-color: #00a0ff;
+            box-shadow: 0 0 10px rgba(0, 160, 255, 0.5);
+        }
+
+        .option.correct {
+            background: rgba(0, 150, 80, 0.8);
+            border-color: #00ffaa;
+            color: #ffffff;
+        }
+
+        .option.incorrect {
+            background: rgba(180, 40, 40, 0.8);
+            border-color: #ff5555;
+            color: #ffffff;
+        }
+
+        /* Power Ups */
+        .power-ups {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .power-up {
+            background: rgba(30, 60, 120, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .power-up.active {
+            border-color: #ffcc00;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+        }
+
+        .power-up-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .power-up.ring .power-up-icon {
+            color: #00ffaa;
+        }
+
+        .power-up.invulnerable .power-up-icon {
+            color: #ffcc00;
+        }
+
+        .power-up.bomb .power-up-icon {
+            color: #ff5555;
+        }
+
+        .power-up-name {
+            font-size: 0.9rem;
+            color: #a0d0ff;
+            margin-bottom: 5px;
+        }
+
+        .power-up-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* Controls Instruction */
+        .controls-instruction {
+            background: rgba(30, 60, 120, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 5px solid #ffcc00;
+        }
+
+        .controls-title {
+            color: #ffcc00;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+
+        .control-key {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #3a7abc;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #4fc3ff;
+            margin-bottom: 5px;
+        }
+
+        .control-action {
+            font-size: 0.9rem;
+            color: #a0d0ff;
+        }
+
+        /* Joystick */
+        .joystick-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .joystick {
+            width: 150px;
+            height: 150px;
+            background: rgba(30, 60, 120, 0.9);
+            border-radius: 50%;
+            position: relative;
+            border: 3px solid #3a7abc;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+            cursor: pointer;
+        }
+
+        .joystick-handle {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #4fc3ff, #2a8cd0);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+
+        .joystick-label {
+            margin-top: 10px;
+            color: #a0d0ff;
+            font-size: 0.9rem;
+        }
+
+        /* Object Legend */
+        .object-legend {
+            background: rgba(30, 60, 120, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .object-legend h3 {
+            color: #a0d0ff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            margin-right: 15px;
+            border: 2px solid transparent;
+        }
+
+        .legend-text {
+            font-size: 0.95rem;
+            color: #e0f0ff;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 15px 35px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            pointer-events: auto;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #00a8ff, #0088cc);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to right, #0088cc, #006699);
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.7);
+            transform: translateY(-3px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(to right, #8c7ae6, #7158e2);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(to right, #7158e2, #5d4ac9);
+            box-shadow: 0 0 20px rgba(140, 122, 230, 0.7);
+            transform: translateY(-3px);
+        }
+
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Game Messages */
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px 60px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid #00a0ff;
+            box-shadow: 0 0 40px rgba(0, 160, 255, 0.5);
+            z-index: 1000;
+            display: none;
+            min-width: 500px;
+        }
+
+        .message-title {
+            color: #00f0ff;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.7);
+        }
+
+        .message-text {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            color: #e0f0ff;
+            line-height: 1.6;
+        }
+
+        .message-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        /* Start Screen Specific Styles */
+        .start-screen {
+            width: 90%;
+            max-width: 1000px;
+            padding: 30px;
+            display: block;
+            position: relative;
+            top: 0;
+            left: 0;
+            transform: none;
+            margin: 20px auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .start-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #2a5a8c;
+        }
+
+        .message-subtitle {
+            color: #80d0ff;
+            font-size: 1.3rem;
+            margin-top: 10px;
+        }
+
+        .instructions-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 900px) {
+            .instructions-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .instructions-sidebar {
+            background: rgba(20, 40, 80, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #3a7abc;
+        }
+
+        .player-highlight {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .player-highlight h3 {
+            color: #4fc3ff;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .demo-robot {
+            width: 100px;
+            height: 150px;
+            background: linear-gradient(145deg, #4fc3ff, #2a8cd0);
+            border-radius: 12px;
+            margin: 0 auto 15px;
+            position: relative;
+            border: 3px solid #00a0ff;
+            box-shadow: 0 0 20px rgba(0, 160, 255, 0.5);
+        }
+
+        .demo-robot::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 25px;
+            width: 50px;
+            height: 30px;
+            background: #2a8cd0;
+            border-radius: 8px;
+            border: 2px solid #00a0ff;
+        }
+
+        .demo-robot::after {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 35px;
+            width: 30px;
+            height: 30px;
+            background: #00ff00;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .demo-label {
+            color: #00ffaa;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .quick-controls {
+            margin-top: 30px;
+        }
+
+        .quick-controls h3 {
+            color: #ffcc00;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 8px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 3px solid #4fc3ff;
+        }
+
+        .control-key {
+            background: rgba(40, 80, 140, 0.8);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: bold;
+            color: #fff;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .control-desc {
+            color: #e0f0ff;
+            font-size: 0.95rem;
+            text-align: right;
+        }
+
+        .instructions-main {
+            background: rgba(20, 40, 80, 0.7);
+            border-radius: 12px;
+            padding: 25px;
+            border: 2px solid #3a7abc;
+        }
+
+        .instructions-section {
+            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .instructions-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .instructions-section h3 {
+            color: #4fc3ff;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instructions-section p {
+            color: #e0f0ff;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .scoring-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .score-item:nth-child(1) { border-left-color: #ffffff; }
+        .score-item:nth-child(2) { border-left-color: #00ffaa; }
+        .score-item:nth-child(3) { border-left-color: #ff5500; }
+        .score-item:nth-child(4) { border-left-color: #33aa33; }
+
+        .score-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            width: 50px;
+            text-align: center;
+        }
+
+        .score-details {
+            flex: 1;
+        }
+
+        .score-details strong {
+            display: block;
+            color: #fff;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .score-details span {
+            color: #a0d0ff;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .rules-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules-list li {
+            padding: 12px 15px;
+            margin: 10px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid #ffcc00;
+            color: #e0f0ff;
+            line-height: 1.5;
+        }
+
+        .rules-list li strong {
+            color: #ffcc00;
+        }
+
+        .education-levels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .level-badge {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            padding: 15px 10px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .level-badge small {
+            display: block;
+            font-weight: normal;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .start-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-large {
+            padding: 18px 45px;
+            font-size: 1.4rem;
+            min-width: 200px;
+        }
+
+        .game-tips {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 160, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #00ffaa;
+        }
+
+        .game-tips p {
+            color: #e0f0ff;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .game-tips strong {
+            color: #00ffaa;
+        }
+
+        /* Pause Menu Specific */
+        .pause-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        /* Sound Toggle */
+        .sound-toggle {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #ffcc00;
+            z-index: 10;
+            pointer-events: auto;
+        }
+
+        .sound-icon {
+            font-size: 1.5rem;
+            color: #ffcc00;
+        }
+
+        /* Mobile Controls */
+        .mobile-controls {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            justify-content: space-between;
+            pointer-events: auto;
+        }
+
+        .mobile-btn {
+            width: 80px;
+            height: 80px;
+            background: rgba(40, 80, 140, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #fff;
+            border: 3px solid #3a7abc;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .mobile-arrows {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .mobile-arrow {
+            width: 70px;
+            height: 70px;
+            background: rgba(40, 80, 140, 0.8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #fff;
+            border: 3px solid #3a7abc;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+            
+            #game-canvas-container {
+                height: 500px;
+            }
+            
+            .mobile-controls {
+                display: flex;
+            }
+            
+            .joystick-container {
+                display: none;
+            }
+            
+            .game-message {
+                min-width: 90%;
+                padding: 30px 20px;
+            }
+            
+            .message-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .controls-panel {
+                order: -1;
+            }
+            
+            .start-screen {
+                padding: 20px 15px;
+            }
+            
+            .instructions-container {
+                gap: 20px;
+            }
+            
+            .scoring-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .education-levels {
+                flex-direction: column;
+            }
+            
+            .level-badge {
+                min-width: auto;
+            }
+            
+            .start-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn-large {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* Stats Styles */
+        .level-stats, .game-over-stats {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #a0d0ff;
+            font-size: 1.1rem;
+        }
+        
+        .stat-value {
+            color: #ffcc00;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-robot"></i> Mr. Robot: Circuit Factory Adventure</h1>
+            <p class="tagline">Navigate the factory, collect power pills, solve circuit puzzles, and avoid fireballs!</p>
+        </header>
+
+        <div class="game-container">
+            <div id="game-canvas-container">
+                <canvas id="game-canvas"></canvas>
+                
+                <!-- Game UI Overlay -->
+                <div class="game-ui">
+                    <div class="status-bar">
+                        <div class="robots-left">
+                            <i class="fas fa-robot robot-icon"></i>
+                            <span class="robot-count" id="robot-count">4</span>
+                        </div>
+                        
+                        <div class="energy-container">
+                            <div class="energy-label">
+                                <span>ENERGY</span>
+                                <span id="energy-value">100</span>
+                            </div>
+                            <div class="energy-bar">
+                                <div class="energy-fill" id="energy-fill"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="score-display">
+                            <span id="score">0</span> pts
+                        </div>
+                    </div>
+                    
+                    <div class="level-info">
+                        Level <span id="level">1</span>: <span id="level-name">Basic Circuits</span>
+                    </div>
+                </div>
+                
+                <!-- Sound Toggle -->
+                <div class="sound-toggle" id="sound-toggle">
+                    <i class="fas fa-volume-up sound-icon" id="sound-icon"></i>
+                </div>
+                
+                <!-- Mobile Controls -->
+                <div class="mobile-controls">
+                    <div class="mobile-btn" id="mobile-jump">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="mobile-arrows">
+                        <div></div>
+                        <div class="mobile-arrow" id="mobile-up">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div></div>
+                        <div class="mobile-arrow" id="mobile-left">
+                            <i class="fas fa-arrow-left"></i>
+                        </div>
+                        <div class="mobile-arrow" id="mobile-down">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="mobile-arrow" id="mobile-right">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Game Controls Panel -->
+            <div class="controls-panel">
+                <h2 class="panel-title">Circuit Challenge</h2>
+                
+                <div class="circuit-question">
+                    <div class="question-text" id="question-text">
+                        What is the unit of electrical resistance?
+                    </div>
+                    
+                    <div class="options-container" id="options-container">
+                        <!-- Options will be inserted here -->
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-primary" id="submit-answer">
+                            <i class="fas fa-check-circle"></i> Submit Answer
+                        </button>
+                    </div>
+                </div>
+                
+                <h2 class="panel-title">Power Ups & Status</h2>
+                
+                <div class="power-ups">
+                    <div class="power-up ring">
+                        <div class="power-up-icon">
+                            <i class="fas fa-ring"></i>
+                        </div>
+                        <div class="power-up-name">Circuit Ring</div>
+                        <div class="power-up-count" id="ring-count">0</div>
+                    </div>
+                    
+                    <div class="power-up invulnerable">
+                        <div class="power-up-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="power-up-name">Invulnerability</div>
+                        <div class="power-up-count" id="inv-time">0s</div>
+                    </div>
+                    
+                    <div class="power-up bomb">
+                        <div class="power-up-icon">
+                            <i class="fas fa-bomb"></i>
+                        </div>
+                        <div class="power-up-name">Circuit Bomb</div>
+                        <div class="power-up-count" id="bomb-count">0</div>
+                    </div>
+                </div>
+                
+                <div class="controls-instruction">
+                    <div class="controls-title">
+                        <i class="fas fa-gamepad"></i> Quick Controls
+                    </div>
+                    
+                    <div class="controls-grid">
+                        <div>
+                            <div class="control-key">← →</div>
+                            <div class="control-action">Move</div>
+                        </div>
+                        <div>
+                            <div class="control-key">SPACE</div>
+                            <div class="control-action">Jump</div>
+                        </div>
+                        <div>
+                            <div class="control-key">↑ ↓</div>
+                            <div class="control-action">Climb</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Start Screen with Instructions -->
+        <div class="game-message start-screen" id="start-screen">
+            <div class="start-header">
+                <h2 class="message-title">Mr. Robot's Circuit Factory</h2>
+                <p class="message-subtitle">Guide your robot through 22 levels of circuit challenges!</p>
+            </div>
+            
+            <div class="instructions-container">
+                <div class="instructions-sidebar">
+                    <div class="player-highlight">
+                        <h3><i class="fas fa-robot"></i> YOU ARE THE ROBOT</h3>
+                        <div class="player-demo">
+                            <div class="demo-robot"></div>
+                            <div class="demo-label">THIS IS YOU!</div>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-controls">
+                        <h3><i class="fas fa-gamepad"></i> Quick Controls</h3>
+                        <div class="control-item">
+                            <span class="control-key">← → or A D</span>
+                            <span class="control-desc">Move Left/Right</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">SPACE or W/↑</span>
+                            <span class="control-desc">Jump</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">↑↓ or W S</span>
+                            <span class="control-desc">Climb Ladders</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-key">P</span>
+                            <span class="control-desc">Pause Game</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="instructions-main">
+                    <div class="instructions-section">
+                        <h3><i class="fas fa-bullseye"></i> OBJECTIVE</h3>
+                        <p>Guide your robot through each factory level, collect power pills, and reach the exit door. Answer circuit questions to unlock doors and progress through 22 increasingly difficult levels.</p>
+                    </div>
+                    
+                    <div class="instructions-section">
+                        <h3><i class="fas fa-star"></i> SCORING & POWER-UPS</h3>
+                        <div class="scoring-grid">
+                            <div class="score-item">
+                                <div class="score-icon">⚪</div>
+                                <div class="score-details">
+                                    <strong>Power Pills</strong>
+                                    <span>+10 points each</span>
+                                </div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-icon">💍</div>
+                                <div class="score-details">
+                                    <strong>Circuit Rings</strong>
+                                    <span>+100 points, temporary invulnerability</span>
+                                </div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-icon">🔥</div>
+                                <div class="score-details">
+                                    <strong>Fireballs</strong>
+                                    <span>Avoid or destroy when invulnerable (+500 points)</span>
+                                </div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-icon">🚪</div>
+                                <div class="score-details">
+                                    <strong>Level Completion</strong>
+                                    <span>+100 points per energy unit remaining</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instructions-section">
+                        <h3><i class="fas fa-heart"></i> GAME RULES</h3>
+                        <ul class="rules-list">
+                            <li><strong>4 Robot Lives</strong> - Start with 4 robots, lose one if you fall or touch fireballs</li>
+                            <li><strong>Energy System</strong> - Start each level with 100 energy that drains over time</li>
+                            <li><strong>Circuit Questions</strong> - Answer correctly to unlock doors, wrong answers cost energy</li>
+                            <li><strong>Time Pressure</strong> - Complete levels before energy runs out!</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="instructions-section">
+                        <h3><i class="fas fa-graduation-cap"></i> CIRCUIT EDUCATION</h3>
+                        <p>Questions progress through Bloom's Taxonomy levels:</p>
+                        <div class="education-levels">
+                            <div class="level-badge" style="background: #4CAF50;">Levels 1-4<br><small>Remembering</small></div>
+                            <div class="level-badge" style="background: #2196F3;">Levels 5-8<br><small>Understanding</small></div>
+                            <div class="level-badge" style="background: #FF9800;">Levels 9-12<br><small>Applying</small></div>
+                            <div class="level-badge" style="background: #F44336;">Levels 13-16<br><small>Analyzing</small></div>
+                            <div class="level-badge" style="background: #9C27B0;">Levels 17-22<br><small>Evaluating</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="start-actions">
+                <button class="btn btn-primary btn-large" id="start-button">
+                    <i class="fas fa-play"></i> Start Game
+                </button>
+                <button class="btn btn-secondary" id="toggle-sound-start">
+                    <i class="fas fa-volume-up"></i> Toggle Sound
+                </button>
+            </div>
+            
+            <div class="game-tips">
+                <p><strong>Tip:</strong> Collect rings early for invulnerability against fireballs!</p>
+            </div>
+        </div>
+        
+        <!-- Level Complete Message -->
+        <div class="game-message" id="level-complete-message" style="display: none;">
+            <h2 class="message-title">Level Complete!</h2>
+            <p class="message-text" id="level-complete-text">
+                You completed Level 1 with 85 energy remaining!<br>
+                Bonus: 8500 points!
+            </p>
+            <div class="message-buttons">
+                <button class="btn btn-primary" id="next-level-button">
+                    <i class="fas fa-forward"></i> Next Level
+                </button>
+                <button class="btn btn-secondary" id="main-menu-button">
+                    <i class="fas fa-home"></i> Main Menu
+                </button>
+            </div>
+        </div>
+        
+        <!-- Game Over Message -->
+        <div class="game-message" id="game-over-message" style="display: none;">
+            <h2 class="message-title">Factory Shutdown!</h2>
+            <p class="message-text" id="game-over-text">
+                All robots have been deactivated!<br>
+                Final Score: 0 points
+            </p>
+            <div class="message-buttons">
+                <button class="btn btn-primary" id="restart-button">
+                    <i class="fas fa-redo"></i> Restart Game
+                </button>
+                <button class="btn btn-secondary" id="back-to-menu">
+                    <i class="fas fa-home"></i> Main Menu
+                </button>
+            </div>
+        </div>
+        
+        <!-- Pause Menu -->
+        <div class="game-message" id="pause-message" style="display: none;">
+            <h2 class="message-title">Game Paused</h2>
+            <div class="pause-actions">
+                <button class="btn btn-primary" id="resume-button">
+                    <i class="fas fa-play"></i> Resume Game
+                </button>
+                <button class="btn btn-secondary" id="pause-to-menu">
+                    <i class="fas fa-home"></i> Main Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // QUESTIONS DATABASE (questions.js content)
+        // =============================================
+        
+        // Circuit Questions Database organized by Bloom's Taxonomy levels
+        const circuitQuestions = {
+            // Level 1: Remembering (Recall basic facts)
+            1: [
+                {
+                    id: 1,
+                    question: "What is the unit of electrical resistance?",
+                    options: ["Volt", "Ampere", "Ohm", "Watt"],
+                    correct: 2,
+                    explanation: "The ohm (Ω) is the SI unit of electrical resistance, named after Georg Simon Ohm.",
+                    difficulty: "Remembering"
+                },
+                {
+                    id: 2,
+                    question: "Which component stores electrical energy in a circuit?",
+                    options: ["Resistor", "Capacitor", "Transistor", "Inductor"],
+                    correct: 1,
+                    explanation: "A capacitor stores electrical energy in an electric field between its plates.",
+                    difficulty: "Remembering"
+                },
+                {
+                    id: 3,
+                    question: "What does DC stand for in electrical circuits?",
+                    options: ["Digital Current", "Direct Current", "Dual Circuit", "Dynamic Charge"],
+                    correct: 1,
+                    explanation: "DC stands for Direct Current, which flows consistently in one direction.",
+                    difficulty: "Remembering"
+                },
+                {
+                    id: 4,
+                    question: "Which law relates voltage, current, and resistance?",
+                    options: ["Kirchhoff's Law", "Faraday's Law", "Ohm's Law", "Coulomb's Law"],
+                    correct: 2,
+                    explanation: "Ohm's Law states that V = I × R, where V is voltage, I is current, and R is resistance.",
+                    difficulty: "Remembering"
+                },
+                {
+                    id: 5,
+                    question: "What is the symbol for a battery in circuit diagrams?",
+                    options: ["A zigzag line", "Two parallel lines (one long, one short)", "A circle", "A triangle"],
+                    correct: 1,
+                    explanation: "A battery is represented by alternating long and short parallel lines.",
+                    difficulty: "Remembering"
+                }
+            ],
+
+            // Level 2: Understanding (Explain concepts)
+            2: [
+                {
+                    id: 6,
+                    question: "If resistance increases while voltage stays constant, what happens to current?",
+                    options: ["Current increases", "Current decreases", "Current stays the same", "Current becomes zero"],
+                    correct: 1,
+                    explanation: "According to Ohm's Law (I = V/R), if R increases while V is constant, I decreases.",
+                    difficulty: "Understanding"
+                },
+                {
+                    id: 7,
+                    question: "Why are house lights typically wired in parallel rather than series?",
+                    options: ["Parallel uses less wire", "Parallel is safer", "If one fails, others stay on", "Parallel gives more voltage"],
+                    correct: 2,
+                    explanation: "In parallel circuits, each device has its own path, so others continue working if one fails.",
+                    difficulty: "Understanding"
+                },
+                {
+                    id: 8,
+                    question: "What is the purpose of a resistor in a circuit?",
+                    options: ["Increase current", "Store charge", "Limit current", "Generate voltage"],
+                    correct: 2,
+                    explanation: "Resistors limit or control the flow of current in a circuit.",
+                    difficulty: "Understanding"
+                },
+                {
+                    id: 9,
+                    question: "In a parallel circuit, the voltage across each branch is:",
+                    options: ["Different", "The same", "Zero", "Increasing"],
+                    correct: 1,
+                    explanation: "In parallel circuits, all components have the same voltage across them.",
+                    difficulty: "Understanding"
+                },
+                {
+                    id: 10,
+                    question: "What happens when you add more bulbs in series to a circuit?",
+                    options: ["They get brighter", "They get dimmer", "Brightness stays same", "Only last bulb lights"],
+                    correct: 1,
+                    explanation: "Adding bulbs in series increases total resistance, reducing current and making each dimmer.",
+                    difficulty: "Understanding"
+                }
+            ],
+
+            // Level 3: Applying (Use formulas)
+            3: [
+                {
+                    id: 11,
+                    question: "A circuit has a 12V battery and 4Ω resistor. What is the current?",
+                    options: ["3A", "48A", "0.33A", "8A"],
+                    correct: 0,
+                    explanation: "Using Ohm's Law: I = V/R = 12V/4Ω = 3A",
+                    difficulty: "Applying"
+                },
+                {
+                    id: 12,
+                    question: "Three resistors (2Ω, 3Ω, 5Ω) are in series. Total resistance?",
+                    options: ["10Ω", "1.03Ω", "0.97Ω", "30Ω"],
+                    correct: 0,
+                    explanation: "Series resistances add: R_total = 2Ω + 3Ω + 5Ω = 10Ω",
+                    difficulty: "Applying"
+                },
+                {
+                    id: 13,
+                    question: "Two resistors (6Ω and 12Ω) are in parallel. Total resistance?",
+                    options: ["18Ω", "9Ω", "4Ω", "2Ω"],
+                    correct: 2,
+                    explanation: "1/R_total = 1/6 + 1/12 = 3/12 = 1/4, so R_total = 4Ω",
+                    difficulty: "Applying"
+                },
+                {
+                    id: 14,
+                    question: "A 9V battery produces 0.5A current. What is the resistance?",
+                    options: ["4.5Ω", "18Ω", "0.056Ω", "9.5Ω"],
+                    correct: 1,
+                    explanation: "R = V/I = 9V/0.5A = 18Ω",
+                    difficulty: "Applying"
+                },
+                {
+                    id: 15,
+                    question: "Three 9Ω resistors in parallel have what total resistance?",
+                    options: ["27Ω", "9Ω", "3Ω", "1Ω"],
+                    correct: 2,
+                    explanation: "For identical resistors in parallel: R_total = R/n = 9Ω/3 = 3Ω",
+                    difficulty: "Applying"
+                }
+            ],
+
+            // Level 4: Analyzing (Interpret relationships)
+            4: [
+                {
+                    id: 16,
+                    question: "Two bulbs in series: A is brighter than B. Which has higher resistance?",
+                    options: ["Bulb A", "Bulb B", "Same resistance", "Cannot determine"],
+                    correct: 0,
+                    explanation: "In series, current is same. Brighter bulb dissipates more power (P=I²R), so higher R.",
+                    difficulty: "Analyzing"
+                },
+                {
+                    id: 17,
+                    question: "In a 12V circuit, a resistor drops 4V. What about other components?",
+                    options: ["They use 8V total", "Only one resistor", "Battery faulty", "No other components"],
+                    correct: 0,
+                    explanation: "Kirchhoff's Voltage Law: Sum of voltage drops equals source voltage (12V - 4V = 8V).",
+                    difficulty: "Analyzing"
+                },
+                {
+                    id: 18,
+                    question: "Two parallel branches: 10Ω and 20Ω resistors. Which has more current?",
+                    options: ["10Ω branch", "20Ω branch", "Equal current", "Depends on voltage"],
+                    correct: 0,
+                    explanation: "In parallel, voltage is same. I = V/R, so lower resistance (10Ω) has higher current.",
+                    difficulty: "Analyzing"
+                },
+                {
+                    id: 19,
+                    question: "Adding a resistor in parallel with an existing resistor:",
+                    options: ["Increases total resistance", "Decreases total resistance", "No change", "Depends on values"],
+                    correct: 1,
+                    explanation: "Adding parallel paths decreases total resistance (more paths for current).",
+                    difficulty: "Analyzing"
+                },
+                {
+                    id: 20,
+                    question: "A 6V battery with 2Ω and 4Ω resistors in series. Voltage across 4Ω?",
+                    options: ["2V", "4V", "6V", "1.5V"],
+                    correct: 1,
+                    explanation: "Total R = 6Ω, I = 1A. V_4Ω = I×R = 1A×4Ω = 4V",
+                    difficulty: "Analyzing"
+                }
+            ],
+
+            // Level 5: Evaluating (Make judgments)
+            5: [
+                {
+                    id: 21,
+                    question: "Which configuration gives highest total resistance for 3 identical resistors?",
+                    options: ["All series", "All parallel", "Two parallel with one series", "Two series with one parallel"],
+                    correct: 0,
+                    explanation: "Series gives highest R (3R), parallel gives lowest (R/3), mixed gives intermediate.",
+                    difficulty: "Evaluating"
+                },
+                {
+                    id: 22,
+                    question: "How should you connect an ammeter to measure current?",
+                    options: ["In parallel", "In series", "Across power supply", "Doesn't matter"],
+                    correct: 1,
+                    explanation: "Ammeters measure current through them, so must be in series with the component.",
+                    difficulty: "Evaluating"
+                },
+                {
+                    id: 23,
+                    question: "You need a circuit where components work independently. Use:",
+                    options: ["Series", "Parallel", "Either", "Depends on components"],
+                    correct: 1,
+                    explanation: "Parallel allows independent operation; series makes all dependent on each other.",
+                    difficulty: "Evaluating"
+                },
+                {
+                    id: 24,
+                    question: "To drop voltage from 12V to 6V for a device drawing 0.5A, what resistor needed?",
+                    options: ["6Ω", "12Ω", "24Ω", "3Ω"],
+                    correct: 1,
+                    explanation: "Resistor must drop 6V at 0.5A: R = V/I = 6V/0.5A = 12Ω",
+                    difficulty: "Evaluating"
+                },
+                {
+                    id: 25,
+                    question: "Adding appliances to a parallel house circuit:",
+                    options: ["Decreases total current", "Increases total current", "No change", "Increases voltage"],
+                    correct: 1,
+                    explanation: "Adding parallel appliances decreases total resistance, increasing total current.",
+                    difficulty: "Evaluating"
+                }
+            ]
+        };
+
+        // Get a random question for a specific level
+        function getRandomQuestion(level) {
+            const levelNum = Math.min(5, Math.ceil(level / 5)); // Scale 22 levels to 5 difficulty levels
+            const questions = circuitQuestions[levelNum];
+            return questions[Math.floor(Math.random() * questions.length)];
+        }
+
+        // =============================================
+        // MAIN GAME CODE (game.js content)
+        // =============================================
+
+        // Game Configuration
+        const CONFIG = {
+            gravity: 0.5,
+            jumpForce: -12,
+            moveSpeed: 5,
+            climbSpeed: 4,
+            energyDrainRate: 0.02,
+            initialRobots: 4,
+            initialEnergy: 100,
+            levels: 22,
+            levelNames: [
+                "Basic Circuits", "Current Flow", "Resistance Training", "Voltage Valley",
+                "Parallel Paths", "Series Circuits", "Ohm's Outpost", "Power Plant",
+                "Capacitor Cavern", "Transformer Tower", "Magnetic Maze", "Inductor Island",
+                "Circuit Breaker", "Generator Gorge", "Transistor Trail", "Diode Dungeon",
+                "Resistor Ridge", "Capacitor Cliff", "Transformer Trail", "Generator Gulch",
+                "Final Circuit", "The Power Core"
+            ]
+        };
+
+        // Game State
+        class GameState {
+            constructor() {
+                this.currentLevel = 1;
+                this.score = 0;
+                this.robots = CONFIG.initialRobots;
+                this.energy = CONFIG.initialEnergy;
+                this.gameRunning = false;
+                this.gameOver = false;
+                this.levelComplete = false;
+                this.paused = false;
+                this.invulnerable = false;
+                this.invulnerabilityTime = 0;
+                this.rings = 0;
+                this.bombs = 0;
+                this.soundEnabled = true;
+                this.currentQuestion = null;
+                this.questionAnswered = false;
+                this.selectedOption = null;
+                this.joystickActive = false;
+                this.questionsAnswered = 0;
+                this.correctAnswers = 0;
+            }
+
+            resetForNewLevel() {
+                this.energy = CONFIG.initialEnergy;
+                this.levelComplete = false;
+                this.questionAnswered = false;
+                this.selectedOption = null;
+                this.invulnerable = false;
+                this.invulnerabilityTime = 0;
+            }
+
+            updateStats(correct) {
+                this.questionsAnswered++;
+                if (correct) this.correctAnswers++;
+            }
+
+            getAccuracy() {
+                return this.questionsAnswered > 0 
+                    ? Math.round((this.correctAnswers / this.questionsAnswered) * 100) 
+                    : 0;
+            }
+        }
+
+        // Input Handler
+        class InputHandler {
+            constructor() {
+                this.keys = {
+                    left: false,
+                    right: false,
+                    up: false,
+                    down: false,
+                    jump: false,
+                    space: false
+                };
+
+                this.initKeyboard();
+                this.initMobile();
+            }
+
+            initKeyboard() {
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key.toLowerCase()) {
+                        case 'arrowleft':
+                        case 'a':
+                            this.keys.left = true;
+                            break;
+                        case 'arrowright':
+                        case 'd':
+                            this.keys.right = true;
+                            break;
+                        case 'arrowup':
+                        case 'w':
+                            this.keys.up = true;
+                            break;
+                        case 'arrowdown':
+                        case 's':
+                            this.keys.down = true;
+                            break;
+                        case ' ':
+                            this.keys.jump = true;
+                            this.keys.space = true;
+                            e.preventDefault();
+                            break;
+                        case 'p':
+                            if (window.gameInstance) {
+                                window.gameInstance.togglePause();
+                            }
+                            break;
+                    }
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    switch(e.key.toLowerCase()) {
+                        case 'arrowleft':
+                        case 'a':
+                            this.keys.left = false;
+                            break;
+                        case 'arrowright':
+                        case 'd':
+                            this.keys.right = false;
+                            break;
+                        case 'arrowup':
+                        case 'w':
+                            this.keys.up = false;
+                            break;
+                        case 'arrowdown':
+                        case 's':
+                            this.keys.down = false;
+                            break;
+                        case ' ':
+                            this.keys.jump = false;
+                            this.keys.space = false;
+                            break;
+                    }
+                });
+            }
+
+            initMobile() {
+                const mobileJump = document.getElementById('mobile-jump');
+                const mobileUp = document.getElementById('mobile-up');
+                const mobileDown = document.getElementById('mobile-down');
+                const mobileLeft = document.getElementById('mobile-left');
+                const mobileRight = document.getElementById('mobile-right');
+
+                const addTouchListeners = (element, key) => {
+                    if (!element) return;
+                    element.addEventListener('touchstart', (e) => {
+                        this.keys[key] = true;
+                        e.preventDefault();
+                    });
+                    element.addEventListener('touchend', () => {
+                        this.keys[key] = false;
+                    });
+                    element.addEventListener('touchcancel', () => {
+                        this.keys[key] = false;
+                    });
+                };
+
+                addTouchListeners(mobileJump, 'jump');
+                addTouchListeners(mobileLeft, 'left');
+                addTouchListeners(mobileRight, 'right');
+                addTouchListeners(mobileUp, 'up');
+                addTouchListeners(mobileDown, 'down');
+            }
+
+            reset() {
+                for (let key in this.keys) {
+                    this.keys[key] = false;
+                }
+            }
+        }
+
+        // Player Class
+        class Player {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 40;
+                this.height = 60;
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.onGround = false;
+                this.climbing = false;
+                this.facingRight = true;
+            }
+
+            update(input, platforms, ladders) {
+                // Apply gravity if not climbing
+                if (!this.climbing) {
+                    this.velocityY += CONFIG.gravity;
+                }
+
+                // Handle horizontal movement
+                this.velocityX = 0;
+                if (input.keys.left) {
+                    this.velocityX = -CONFIG.moveSpeed;
+                    this.facingRight = false;
+                }
+                if (input.keys.right) {
+                    this.velocityX = CONFIG.moveSpeed;
+                    this.facingRight = true;
+                }
+
+                // Handle jumping
+                if (input.keys.jump && this.onGround && !this.climbing) {
+                    this.velocityY = CONFIG.jumpForce;
+                    if (window.gameInstance) {
+                        window.gameInstance.playSound('jump');
+                    }
+                }
+
+                // Update position
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+
+                // Boundary checking
+                if (window.gameInstance && window.gameInstance.canvas) {
+                    this.x = Math.max(0, Math.min(window.gameInstance.canvas.width - this.width, this.x));
+                }
+
+                // Check if on ladder
+                this.climbing = false;
+                for (const ladder of ladders) {
+                    if (this.isColliding(ladder)) {
+                        this.climbing = true;
+                        if (input.keys.up) this.y -= CONFIG.climbSpeed;
+                        if (input.keys.down && this.y < window.gameInstance.canvas.height - this.height) {
+                            this.y += CONFIG.climbSpeed;
+                        }
+                        break;
+                    }
+                }
+
+                // Platform collision
+                this.onGround = false;
+                for (const platform of platforms) {
+                    if (this.isColliding(platform)) {
+                        this.handleCollision(platform);
+                    }
+                }
+            }
+
+            isColliding(object) {
+                return this.x < object.x + object.width &&
+                       this.x + this.width > object.x &&
+                       this.y < object.y + object.height &&
+                       this.y + this.height > object.y;
+            }
+
+            handleCollision(platform) {
+                // Top collision
+                if (this.velocityY > 0 && 
+                    this.y + this.height - this.velocityY <= platform.y) {
+                    this.y = platform.y - this.height;
+                    this.velocityY = 0;
+                    this.onGround = true;
+                }
+                // Bottom collision
+                else if (this.velocityY < 0 &&
+                         this.y - this.velocityY >= platform.y + platform.height) {
+                    this.y = platform.y + platform.height;
+                    this.velocityY = 0;
+                }
+                // Side collision
+                else {
+                    if (this.velocityX > 0) {
+                        this.x = platform.x - this.width;
+                    } else if (this.velocityX < 0) {
+                        this.x = platform.x + platform.width;
+                    }
+                    this.velocityX = 0;
+                }
+            }
+
+            draw(ctx) {
+                // Robot body
+                const isInvulnerable = window.gameInstance ? window.gameInstance.state.invulnerable : false;
+                ctx.fillStyle = isInvulnerable ? '#00aaff' : '#4fc3ff';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+
+                // Robot head
+                ctx.fillStyle = '#2a8cd0';
+                ctx.fillRect(this.x + this.width/4, this.y - 15, this.width/2, 20);
+
+                // Eyes
+                ctx.fillStyle = '#00ff00';
+                const eyeX = this.facingRight ? this.x + this.width * 0.7 : this.x + this.width * 0.3;
+                ctx.beginPath();
+                ctx.arc(eyeX, this.y + this.height/3, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Mouth
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                if (isInvulnerable) {
+                    ctx.arc(this.x + this.width/2, this.y + this.height * 0.7, 8, 0, Math.PI);
+                } else {
+                    ctx.moveTo(this.x + this.width/3, this.y + this.height * 0.7);
+                    ctx.lineTo(this.x + this.width * 2/3, this.y + this.height * 0.7);
+                }
+                ctx.stroke();
+
+                // Invulnerability effect
+                if (isInvulnerable) {
+                    const time = Date.now() / 100;
+                    const pulse = Math.sin(time) * 5 + 10;
+                    
+                    ctx.strokeStyle = '#00ffff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(
+                        this.x + this.width/2,
+                        this.y + this.height/2,
+                        this.width/2 + pulse, 0, Math.PI * 2
+                    );
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Main Game Class
+        class Game {
+            constructor() {
+                this.canvas = document.getElementById('game-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.state = new GameState();
+                this.input = new InputHandler();
+                
+                // Game objects
+                this.player = null;
+                this.platforms = [];
+                this.powerPills = [];
+                this.rings = [];
+                this.fireballs = [];
+                this.bombs = [];
+                this.magnets = [];
+                this.doors = [];
+                this.ladders = [];
+                
+                // DOM Elements
+                this.domElements = this.cacheDomElements();
+                
+                // Initialize
+                this.init();
+                this.setupEventListeners();
+                this.setupJoystick();
+                
+                // Show start screen
+                this.showStartScreen();
+                
+                // Start game loop
+                this.gameLoop();
+            }
+
+            cacheDomElements() {
+                return {
+                    // Game UI
+                    robotCount: document.getElementById('robot-count'),
+                    energyValue: document.getElementById('energy-value'),
+                    energyFill: document.getElementById('energy-fill'),
+                    score: document.getElementById('score'),
+                    level: document.getElementById('level'),
+                    levelName: document.getElementById('level-name'),
+                    questionText: document.getElementById('question-text'),
+                    optionsContainer: document.getElementById('options-container'),
+                    submitAnswerBtn: document.getElementById('submit-answer'),
+                    ringCount: document.getElementById('ring-count'),
+                    invTime: document.getElementById('inv-time'),
+                    bombCount: document.getElementById('bomb-count'),
+                    
+                    // Sound
+                    soundToggle: document.getElementById('sound-toggle'),
+                    soundIcon: document.getElementById('sound-icon'),
+                    
+                    // Screens
+                    startScreen: document.getElementById('start-screen'),
+                    startButton: document.getElementById('start-button'),
+                    toggleSoundStart: document.getElementById('toggle-sound-start'),
+                    
+                    levelCompleteMessage: document.getElementById('level-complete-message'),
+                    levelCompleteText: document.getElementById('level-complete-text'),
+                    nextLevelButton: document.getElementById('next-level-button'),
+                    mainMenuButton: document.getElementById('main-menu-button'),
+                    
+                    gameOverMessage: document.getElementById('game-over-message'),
+                    gameOverText: document.getElementById('game-over-text'),
+                    restartButton: document.getElementById('restart-button'),
+                    backToMenu: document.getElementById('back-to-menu'),
+                    
+                    pauseMessage: document.getElementById('pause-message'),
+                    resumeButton: document.getElementById('resume-button'),
+                    pauseToMenu: document.getElementById('pause-to-menu')
+                };
+            }
+
+            init() {
+                // Set canvas size
+                this.resizeCanvas();
+                
+                // Load first level (but don't show it yet)
+                this.loadLevel(1);
+            }
+
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                if (container) {
+                    this.canvas.width = container.clientWidth;
+                    this.canvas.height = container.clientHeight;
+                }
+            }
+
+            showStartScreen() {
+                if (this.domElements.startScreen) {
+                    this.domElements.startScreen.style.display = 'block';
+                }
+                if (this.domElements.levelCompleteMessage) {
+                    this.domElements.levelCompleteMessage.style.display = 'none';
+                }
+                if (this.domElements.gameOverMessage) {
+                    this.domElements.gameOverMessage.style.display = 'none';
+                }
+                if (this.domElements.pauseMessage) {
+                    this.domElements.pauseMessage.style.display = 'none';
+                }
+                
+                // Hide game elements
+                const gameCanvas = document.querySelector('#game-canvas-container');
+                const controlsPanel = document.querySelector('.controls-panel');
+                if (gameCanvas) gameCanvas.style.display = 'none';
+                if (controlsPanel) controlsPanel.style.display = 'none';
+                
+                this.state.gameRunning = false;
+            }
+
+            showGameScreen() {
+                if (this.domElements.startScreen) {
+                    this.domElements.startScreen.style.display = 'none';
+                }
+                
+                // Show game elements
+                const gameCanvas = document.querySelector('#game-canvas-container');
+                const controlsPanel = document.querySelector('.controls-panel');
+                if (gameCanvas) gameCanvas.style.display = 'block';
+                if (controlsPanel) controlsPanel.style.display = 'grid';
+                
+                this.state.gameRunning = true;
+                this.playSound('start');
+            }
+
+            showMainMenu() {
+                this.showStartScreen();
+            }
+
+            loadLevel(level) {
+                // Clear existing objects
+                this.platforms = [];
+                this.powerPills = [];
+                this.rings = [];
+                this.fireballs = [];
+                this.bombs = [];
+                this.magnets = [];
+                this.doors = [];
+                this.ladders = [];
+
+                // Create level
+                this.createLevel(level);
+
+                // Create player
+                this.player = new Player(100, this.canvas.height - 150);
+
+                // Update UI
+                this.updateLevelDisplay(level);
+                
+                // Load question for door
+                this.loadQuestion();
+
+                // Reset game state for level
+                this.state.resetForNewLevel();
+                this.updateUI();
+            }
+
+            createLevel(level) {
+                const baseY = this.canvas.height - 100;
+                
+                // Ground platform
+                this.platforms.push({ x: 0, y: baseY, width: this.canvas.width, height: 20 });
+
+                // Level-specific platforms
+                if (level === 1) {
+                    // Simple level for beginners
+                    this.platforms.push({ x: 200, y: baseY - 150, width: 200, height: 20 });
+                    this.platforms.push({ x: 500, y: baseY - 250, width: 200, height: 20 });
+                    this.ladders.push({ x: 300, y: baseY - 150, width: 20, height: 150 });
+                } else {
+                    // Procedural generation for higher levels
+                    const platformCount = 5 + Math.min(level, 10);
+                    for (let i = 0; i < platformCount; i++) {
+                        const x = 100 + i * (this.canvas.width - 200) / platformCount;
+                        const y = baseY - 50 - (i % 4) * 80;
+                        const width = 80 + Math.random() * 100;
+                        this.platforms.push({ x, y, width, height: 20 });
+
+                        // Add ladders occasionally
+                        if (i % 3 === 0 && i > 0) {
+                            this.ladders.push({ 
+                                x: x + width/2 - 10, 
+                                y: y, 
+                                width: 20, 
+                                height: 100 
+                            });
+                        }
+                    }
+                }
+
+                // Create collectibles
+                this.createCollectibles(level);
+                
+                // Create door
+                this.doors.push({
+                    x: this.canvas.width - 150,
+                    y: 100,
+                    width: 60,
+                    height: 100,
+                    locked: true
+                });
+            }
+
+            createCollectibles(level) {
+                // Power pills
+                const pillCount = 15 + level * 2;
+                for (let i = 0; i < pillCount; i++) {
+                    const platform = this.platforms[i % this.platforms.length];
+                    this.powerPills.push({
+                        x: platform.x + 20 + Math.random() * (platform.width - 40),
+                        y: platform.y - 15,
+                        radius: 8,
+                        collected: false
+                    });
+                }
+
+                // Rings
+                const ringCount = 3 + Math.floor(level / 4);
+                for (let i = 0; i < ringCount; i++) {
+                    const platform = this.platforms[Math.min(i + 2, this.platforms.length - 1)];
+                    this.rings.push({
+                        x: platform.x + platform.width/2,
+                        y: platform.y - 30,
+                        radius: 15,
+                        collected: false,
+                        pulse: 0
+                    });
+                }
+
+                // Fireballs
+                const fireballCount = 2 + Math.floor(level / 3);
+                for (let i = 0; i < fireballCount; i++) {
+                    const platform = this.platforms[i % this.platforms.length];
+                    this.fireballs.push({
+                        x: platform.x + 30,
+                        y: platform.y - 20,
+                        radius: 15,
+                        speed: 1 + Math.random() * 2,
+                        direction: Math.random() > 0.5 ? 1 : -1,
+                        minX: platform.x + 20,
+                        maxX: platform.x + platform.width - 20
+                    });
+                }
+
+                // Bombs (level 8+)
+                if (level >= 8) {
+                    for (let i = 0; i < Math.min(3, this.platforms.length - 2); i++) {
+                        const platform = this.platforms[i + 2];
+                        this.bombs.push({
+                            x: platform.x + platform.width/2,
+                            y: platform.y - 15,
+                            radius: 12,
+                            active: true,
+                            fuse: 300 + Math.random() * 300
+                        });
+                    }
+                }
+
+                // Magnets (level 12+)
+                if (level >= 12) {
+                    for (let i = 0; i < 2; i++) {
+                        this.magnets.push({
+                            x: 200 + i * 400,
+                            y: 200,
+                            radius: 25,
+                            strength: 0.5,
+                            active: true
+                        });
+                    }
+                }
+            }
+
+            updateLevelDisplay(level) {
+                if (this.domElements.level) {
+                    this.domElements.level.textContent = level;
+                }
+                if (this.domElements.levelName) {
+                    this.domElements.levelName.textContent = CONFIG.levelNames[level - 1] || `Circuit Level ${level}`;
+                }
+            }
+
+            loadQuestion() {
+                this.state.currentQuestion = getRandomQuestion(this.state.currentLevel);
+                if (this.domElements.questionText && this.state.currentQuestion) {
+                    this.domElements.questionText.textContent = this.state.currentQuestion.question;
+                }
+                
+                // Clear options
+                if (this.domElements.optionsContainer) {
+                    this.domElements.optionsContainer.innerHTML = '';
+                    
+                    // Add options
+                    if (this.state.currentQuestion) {
+                        this.state.currentQuestion.options.forEach((option, index) => {
+                            const optionEl = document.createElement('div');
+                            optionEl.className = 'option';
+                            optionEl.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                            optionEl.dataset.index = index;
+                            
+                            optionEl.addEventListener('click', () => {
+                                if (!this.state.questionAnswered) {
+                                    document.querySelectorAll('.option').forEach(opt => {
+                                        opt.classList.remove('selected');
+                                    });
+                                    optionEl.classList.add('selected');
+                                    this.state.selectedOption = index;
+                                }
+                            });
+                            
+                            this.domElements.optionsContainer.appendChild(optionEl);
+                        });
+                    }
+                }
+                
+                this.state.questionAnswered = false;
+                this.state.selectedOption = null;
+                if (this.domElements.submitAnswerBtn) {
+                    this.domElements.submitAnswerBtn.disabled = false;
+                }
+            }
+
+            updateUI() {
+                if (this.domElements.robotCount) {
+                    this.domElements.robotCount.textContent = this.state.robots;
+                }
+                if (this.domElements.energyValue) {
+                    this.domElements.energyValue.textContent = Math.floor(this.state.energy);
+                }
+                if (this.domElements.energyFill) {
+                    this.domElements.energyFill.style.width = `${this.state.energy}%`;
+                }
+                if (this.domElements.score) {
+                    this.domElements.score.textContent = this.state.score;
+                }
+                if (this.domElements.ringCount) {
+                    this.domElements.ringCount.textContent = this.state.rings;
+                }
+                if (this.domElements.invTime) {
+                    this.domElements.invTime.textContent = `${Math.floor(this.state.invulnerabilityTime/60)}s`;
+                }
+                if (this.domElements.bombCount) {
+                    this.domElements.bombCount.textContent = this.state.bombs;
+                }
+                
+                // Update power-up displays
+                const invulnerableElement = document.querySelector('.power-up.invulnerable');
+                if (invulnerableElement) {
+                    invulnerableElement.classList.toggle('active', this.state.invulnerable);
+                }
+            }
+
+            gameLoop() {
+                if (!this.state.gameRunning || this.state.paused || 
+                    (this.domElements.startScreen && this.domElements.startScreen.style.display !== 'none')) {
+                    requestAnimationFrame(() => this.gameLoop());
+                    return;
+                }
+
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Update game state
+                this.update();
+
+                // Draw everything
+                this.draw();
+
+                // Check game conditions
+                this.checkGameConditions();
+
+                // Continue game loop
+                requestAnimationFrame(() => this.gameLoop());
+            }
+
+            update() {
+                // Update player
+                this.player.update(this.input, this.platforms, this.ladders);
+
+                // Update collectibles
+                this.updateCollectibles();
+
+                // Update enemies
+                this.updateEnemies();
+
+                // Update power-ups
+                this.updatePowerUps();
+
+                // Check door collision
+                this.checkDoorCollision();
+
+                // Drain energy
+                this.state.energy -= CONFIG.energyDrainRate;
+                if (this.state.energy <= 0) {
+                    this.state.energy = 0;
+                    this.loseRobot();
+                }
+            }
+
+            updateCollectibles() {
+                // Power pills
+                this.powerPills.forEach(pill => {
+                    if (!pill.collected && this.player.isColliding({
+                        x: pill.x - pill.radius,
+                        y: pill.y - pill.radius,
+                        width: pill.radius * 2,
+                        height: pill.radius * 2
+                    })) {
+                        pill.collected = true;
+                        this.state.score += 10;
+                        this.playSound('collect');
+                    }
+                });
+
+                // Rings
+                this.rings.forEach(ring => {
+                    if (!ring.collected) {
+                        ring.pulse = (ring.pulse + 0.1) % (Math.PI * 2);
+                        if (this.player.isColliding({
+                            x: ring.x - ring.radius,
+                            y: ring.y - ring.radius,
+                            width: ring.radius * 2,
+                            height: ring.radius * 2
+                        })) {
+                            ring.collected = true;
+                            this.state.rings++;
+                            this.state.score += 100;
+                            this.state.invulnerable = true;
+                            this.state.invulnerabilityTime = 600;
+                            this.playSound('ring');
+                        }
+                    }
+                });
+            }
+
+            updateEnemies() {
+                // Fireballs
+                this.fireballs.forEach(fireball => {
+                    fireball.x += fireball.speed * fireball.direction;
+                    
+                    if (fireball.x <= fireball.minX || fireball.x >= fireball.maxX) {
+                        fireball.direction *= -1;
+                    }
+                    
+                    // Check collision with player
+                    if (!this.state.invulnerable && this.player.isColliding({
+                        x: fireball.x - fireball.radius,
+                        y: fireball.y - fireball.radius,
+                        width: fireball.radius * 2,
+                        height: fireball.radius * 2
+                    })) {
+                        this.loseRobot();
+                        this.playSound('hit');
+                    } else if (this.state.invulnerable && this.player.isColliding({
+                        x: fireball.x - fireball.radius,
+                        y: fireball.y - fireball.radius,
+                        width: fireball.radius * 2,
+                        height: fireball.radius * 2
+                    })) {
+                        // Destroy fireball when invulnerable
+                        fireball.x = -100;
+                        this.state.score += 500;
+                        this.playSound('destroy');
+                    }
+                });
+
+                // Bombs
+                this.bombs.forEach(bomb => {
+                    if (bomb.active) {
+                        bomb.fuse--;
+                        
+                        if (bomb.fuse <= 0) {
+                            bomb.active = false;
+                            this.createExplosion(bomb.x, bomb.y);
+                        }
+                        
+                        // Check collision
+                        if (this.player.isColliding({
+                            x: bomb.x - bomb.radius,
+                            y: bomb.y - bomb.radius,
+                            width: bomb.radius * 2,
+                            height: bomb.radius * 2
+                        }) && bomb.active) {
+                            bomb.active = false;
+                            this.state.bombs++;
+                            this.playSound('collect');
+                        }
+                    }
+                });
+            }
+
+            updatePowerUps() {
+                // Update invulnerability
+                if (this.state.invulnerable) {
+                    this.state.invulnerabilityTime--;
+                    if (this.state.invulnerabilityTime <= 0) {
+                        this.state.invulnerable = false;
+                    }
+                }
+
+                // Apply magnet forces
+                if (this.state.currentLevel >= 12) {
+                    this.magnets.forEach(magnet => {
+                        if (magnet.active) {
+                            const dx = magnet.x - (this.player.x + this.player.width/2);
+                            const dy = magnet.y - (this.player.y + this.player.height/2);
+                            const distance = Math.sqrt(dx*dx + dy*dy);
+                            
+                            if (distance < 200) {
+                                const force = magnet.strength * (1 - distance/200);
+                                this.player.velocityX += (dx/distance) * force;
+                                this.player.velocityY += (dy/distance) * force;
+                            }
+                        }
+                    });
+                }
+            }
+
+            checkDoorCollision() {
+                this.doors.forEach(door => {
+                    if (!door.locked && this.player.isColliding(door)) {
+                        this.completeLevel();
+                    }
+                });
+            }
+
+            checkGameConditions() {
+                // Check if all power pills collected (optional objective)
+                const allPillsCollected = this.powerPills.every(pill => pill.collected);
+                if (allPillsCollected && this.doors.length > 0 && this.doors[0].locked) {
+                    this.doors[0].locked = false;
+                    this.playSound('unlock');
+                }
+
+                // Check game over
+                if (this.state.robots <= 0) {
+                    this.gameOver();
+                }
+            }
+
+            draw() {
+                // Draw background
+                this.drawBackground();
+                
+                // Draw platforms
+                this.drawPlatforms();
+                
+                // Draw ladders
+                this.drawLadders();
+                
+                // Draw collectibles
+                this.drawCollectibles();
+                
+                // Draw enemies
+                this.drawEnemies();
+                
+                // Draw power-ups
+                this.drawPowerUps();
+                
+                // Draw doors
+                this.drawDoors();
+                
+                // Draw player
+                this.player.draw(this.ctx);
+                
+                // Draw circuit elements
+                this.drawCircuitElements();
+            }
+
+            drawBackground() {
+                // Solid color background
+                this.ctx.fillStyle = '#0a1425';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Grid
+                this.ctx.strokeStyle = 'rgba(50, 100, 150, 0.1)';
+                this.ctx.lineWidth = 1;
+                for (let x = 0; x < this.canvas.width; x += 50) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, 0);
+                    this.ctx.lineTo(x, this.canvas.height);
+                    this.ctx.stroke();
+                }
+                for (let y = 0; y < this.canvas.height; y += 50) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, y);
+                    this.ctx.lineTo(this.canvas.width, y);
+                    this.ctx.stroke();
+                }
+            }
+
+            drawPlatforms() {
+                this.ctx.fillStyle = '#3a7abc';
+                this.platforms.forEach(platform => {
+                    this.ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                    this.ctx.strokeStyle = '#5a9aec';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+                });
+            }
+
+            drawLadders() {
+                this.ctx.fillStyle = '#8b7355';
+                this.ladders.forEach(ladder => {
+                    this.ctx.fillRect(ladder.x, ladder.y, ladder.width, ladder.height);
+                    // Draw ladder rungs
+                    this.ctx.fillStyle = '#5a4a35';
+                    for (let y = ladder.y + 10; y < ladder.y + ladder.height; y += 20) {
+                        this.ctx.fillRect(ladder.x, y, ladder.width, 5);
+                    }
+                    this.ctx.fillStyle = '#8b7355';
+                });
+            }
+
+            drawCollectibles() {
+                // Power pills
+                this.powerPills.forEach(pill => {
+                    if (!pill.collected) {
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.beginPath();
+                        this.ctx.arc(pill.x, pill.y, pill.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                });
+
+                // Rings
+                this.rings.forEach(ring => {
+                    if (!ring.collected) {
+                        const pulseSize = 3 + Math.sin(ring.pulse) * 2;
+                        this.ctx.strokeStyle = '#00ffaa';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.beginPath();
+                        this.ctx.arc(ring.x, ring.y, ring.radius + pulseSize, 0, Math.PI * 2);
+                        this.ctx.stroke();
+                    }
+                });
+            }
+
+            drawEnemies() {
+                // Fireballs
+                this.fireballs.forEach(fireball => {
+                    if (fireball.x > 0) {
+                        const gradient = this.ctx.createRadialGradient(
+                            fireball.x, fireball.y, 0,
+                            fireball.x, fireball.y, fireball.radius
+                        );
+                        gradient.addColorStop(0, '#ffaa00');
+                        gradient.addColorStop(0.7, '#ff5500');
+                        gradient.addColorStop(1, '#ff0000');
+                        
+                        this.ctx.fillStyle = gradient;
+                        this.ctx.beginPath();
+                        this.ctx.arc(fireball.x, fireball.y, fireball.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                });
+            }
+
+            drawPowerUps() {
+                // Bombs
+                this.bombs.forEach(bomb => {
+                    if (bomb.active) {
+                        this.ctx.fillStyle = '#333333';
+                        this.ctx.beginPath();
+                        this.ctx.arc(bomb.x, bomb.y, bomb.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                });
+
+                // Magnets
+                this.magnets.forEach(magnet => {
+                    if (magnet.active) {
+                        const magnetGradient = this.ctx.createLinearGradient(
+                            magnet.x - magnet.radius, magnet.y,
+                            magnet.x + magnet.radius, magnet.y
+                        );
+                        magnetGradient.addColorStop(0, '#ff5555');
+                        magnetGradient.addColorStop(0.5, '#ffffff');
+                        magnetGradient.addColorStop(1, '#5555ff');
+                        
+                        this.ctx.fillStyle = magnetGradient;
+                        this.ctx.beginPath();
+                        this.ctx.arc(magnet.x, magnet.y, magnet.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                });
+            }
+
+            drawDoors() {
+                this.doors.forEach(door => {
+                    this.ctx.fillStyle = door.locked ? '#aa3333' : '#33aa33';
+                    this.ctx.fillRect(door.x, door.y, door.width, door.height);
+                    
+                    // Door label
+                    this.ctx.fillStyle = door.locked ? '#ff5555' : '#55ff55';
+                    this.ctx.font = 'bold 14px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(door.locked ? 'LOCKED' : 'ENTER', 
+                        door.x + door.width/2, door.y + door.height/2);
+                });
+            }
+
+            drawCircuitElements() {
+                const time = Date.now() / 1000;
+                
+                // Draw floating circuit symbols
+                for (let i = 0; i < 5; i++) {
+                    const x = (Math.sin(time + i) * 100 + i * 200) % this.canvas.width;
+                    const y = (Math.cos(time * 0.7 + i) * 50 + i * 100) % this.canvas.height;
+                    
+                    this.ctx.save();
+                    this.ctx.translate(x, y);
+                    this.ctx.globalAlpha = 0.3;
+                    
+                    // Different circuit symbols
+                    if (i % 3 === 0) {
+                        // Resistor
+                        this.ctx.strokeStyle = '#ff5555';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(-15, 0);
+                        this.ctx.lineTo(-5, 0);
+                        for (let j = 0; j < 3; j++) {
+                            this.ctx.rect(-5 + j * 10, -5, 10, 10);
+                        }
+                        this.ctx.moveTo(25, 0);
+                        this.ctx.lineTo(15, 0);
+                        this.ctx.stroke();
+                    }
+                    
+                    this.ctx.restore();
+                }
+            }
+
+            createExplosion(x, y) {
+                // Create particles
+                for (let i = 0; i < 20; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 4;
+                    const size = 2 + Math.random() * 4;
+                    
+                    this.ctx.fillStyle = `hsl(${Math.random() * 30 + 10}, 100%, 50%)`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(
+                        x + Math.cos(angle) * speed * 10,
+                        y + Math.sin(angle) * speed * 10,
+                        size, 0, Math.PI * 2
+                    );
+                    this.ctx.fill();
+                }
+                
+                // Check player damage
+                const dx = this.player.x + this.player.width/2 - x;
+                const dy = this.player.y + this.player.height/2 - y;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                
+                if (distance < 100 && !this.state.invulnerable) {
+                    this.loseRobot();
+                }
+                
+                this.playSound('explosion');
+            }
+
+            loseRobot() {
+                this.state.robots--;
+                if (this.state.robots > 0) {
+                    // Reset player position
+                    this.player.x = 100;
+                    this.player.y = this.canvas.height - 150;
+                    this.player.velocityX = 0;
+                    this.player.velocityY = 0;
+                    this.state.energy = CONFIG.initialEnergy;
+                    this.state.invulnerable = false;
+                    this.state.invulnerabilityTime = 0;
+                    this.playSound('lose');
+                }
+            }
+
+            completeLevel() {
+                this.state.levelComplete = true;
+                this.state.gameRunning = false;
+                
+                // Calculate bonus
+                const energyBonus = Math.floor(this.state.energy) * 100;
+                this.state.score += energyBonus;
+                
+                if (this.domElements.levelCompleteText) {
+                    this.domElements.levelCompleteText.innerHTML = `
+                        <h3>Level ${this.state.currentLevel} Complete!</h3>
+                        <div class="level-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Energy Bonus:</span>
+                                <span class="stat-value">${energyBonus} points</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Total Score:</span>
+                                <span class="stat-value">${this.state.score} points</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Circuit Accuracy:</span>
+                                <span class="stat-value">${this.state.getAccuracy()}%</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (this.domElements.levelCompleteMessage) {
+                    this.domElements.levelCompleteMessage.style.display = 'block';
+                }
+                this.playSound('levelComplete');
+            }
+
+            gameOver() {
+                this.state.gameOver = true;
+                this.state.gameRunning = false;
+                
+                if (this.domElements.gameOverText) {
+                    this.domElements.gameOverText.innerHTML = `
+                        <h3>Factory Shutdown!</h3>
+                        <div class="game-over-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Final Score:</span>
+                                <span class="stat-value">${this.state.score} points</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Levels Completed:</span>
+                                <span class="stat-value">${this.state.currentLevel - 1}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Circuit Accuracy:</span>
+                                <span class="stat-value">${this.state.getAccuracy()}%</span>
+                            </div>
+                        </div>
+                        <p>Try again to beat your score!</p>
+                    `;
+                }
+                
+                if (this.domElements.gameOverMessage) {
+                    this.domElements.gameOverMessage.style.display = 'block';
+                }
+                this.playSound('gameOver');
+            }
+
+            playSound(type) {
+                if (!this.state.soundEnabled) return;
+                
+                // Simple beep sounds using Web Audio API
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // Different sounds for different events
+                    switch(type) {
+                        case 'jump':
+                            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.2);
+                            break;
+                            
+                        case 'collect':
+                            oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.1);
+                            break;
+                            
+                        case 'ring':
+                            oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.3);
+                            break;
+                            
+                        case 'destroy':
+                            oscillator.frequency.setValueAtTime(392.00, audioContext.currentTime);
+                            oscillator.frequency.exponentialRampToValueAtTime(261.63, audioContext.currentTime + 0.2);
+                            gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.3);
+                            break;
+                            
+                        case 'hit':
+                            oscillator.frequency.setValueAtTime(220.00, audioContext.currentTime);
+                            oscillator.frequency.exponentialRampToValueAtTime(110.00, audioContext.currentTime + 0.1);
+                            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.2);
+                            break;
+                            
+                        case 'correct':
+                            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                            oscillator.frequency.exponentialRampToValueAtTime(659.25, audioContext.currentTime + 0.1);
+                            oscillator.frequency.exponentialRampToValueAtTime(783.99, audioContext.currentTime + 0.2);
+                            gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.3);
+                            break;
+                            
+                        case 'wrong':
+                            oscillator.frequency.setValueAtTime(349.23, audioContext.currentTime);
+                            oscillator.frequency.exponentialRampToValueAtTime(293.66, audioContext.currentTime + 0.1);
+                            gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.2);
+                            break;
+                            
+                        case 'start':
+                            oscillator.frequency.setValueAtTime(261.63, audioContext.currentTime);
+                            oscillator.frequency.exponentialRampToValueAtTime(523.25, audioContext.currentTime + 0.3);
+                            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.4);
+                            break;
+                            
+                        case 'levelComplete':
+                            const frequencies = [523.25, 659.25, 783.99, 1046.50];
+                            let currentTime = audioContext.currentTime;
+                            
+                            frequencies.forEach((freq, index) => {
+                                const osc = audioContext.createOscillator();
+                                const gain = audioContext.createGain();
+                                osc.connect(gain);
+                                gain.connect(audioContext.destination);
+                                
+                                osc.frequency.setValueAtTime(freq, currentTime);
+                                gain.gain.setValueAtTime(0.1, currentTime);
+                                gain.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.1);
+                                
+                                osc.start(currentTime);
+                                osc.stop(currentTime + 0.1);
+                                currentTime += 0.1;
+                            });
+                            break;
+                            
+                        case 'gameOver':
+                            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                            oscillator.frequency.exponentialRampToValueAtTime(261.63, audioContext.currentTime + 0.5);
+                            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.6);
+                            break;
+                            
+                        case 'click':
+                            oscillator.frequency.setValueAtTime(440.00, audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.05);
+                            break;
+                            
+                        case 'pause':
+                            oscillator.frequency.setValueAtTime(329.63, audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.1);
+                            break;
+                            
+                        default:
+                            oscillator.frequency.setValueAtTime(440.00, audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.1);
+                    }
+                } catch (error) {
+                    console.log(`Sound effect: ${type}`);
+                }
+            }
+
+            togglePause() {
+                this.state.paused = !this.state.paused;
+                if (this.domElements.pauseMessage) {
+                    this.domElements.pauseMessage.style.display = this.state.paused ? 'block' : 'none';
+                }
+                
+                if (this.state.paused) {
+                    this.playSound('pause');
+                }
+            }
+
+            setupEventListeners() {
+                // Start button
+                if (this.domElements.startButton) {
+                    this.domElements.startButton.addEventListener('click', () => {
+                        this.showGameScreen();
+                    });
+                }
+
+                // Toggle sound on start screen
+                if (this.domElements.toggleSoundStart) {
+                    this.domElements.toggleSoundStart.addEventListener('click', () => {
+                        this.state.soundEnabled = !this.state.soundEnabled;
+                        const icon = this.domElements.toggleSoundStart.querySelector('i');
+                        if (icon) {
+                            icon.className = this.state.soundEnabled ? 
+                                'fas fa-volume-up' : 
+                                'fas fa-volume-mute';
+                        }
+                        this.playSound('click');
+                    });
+                }
+
+                // Main menu buttons
+                if (this.domElements.mainMenuButton) {
+                    this.domElements.mainMenuButton.addEventListener('click', () => {
+                        this.showMainMenu();
+                        this.playSound('click');
+                    });
+                }
+
+                if (this.domElements.backToMenu) {
+                    this.domElements.backToMenu.addEventListener('click', () => {
+                        this.showMainMenu();
+                        this.playSound('click');
+                    });
+                }
+
+                if (this.domElements.pauseToMenu) {
+                    this.domElements.pauseToMenu.addEventListener('click', () => {
+                        this.togglePause();
+                        this.showMainMenu();
+                        this.playSound('click');
+                    });
+                }
+
+                // Next level button
+                if (this.domElements.nextLevelButton) {
+                    this.domElements.nextLevelButton.addEventListener('click', () => {
+                        if (this.domElements.levelCompleteMessage) {
+                            this.domElements.levelCompleteMessage.style.display = 'none';
+                        }
+                        if (this.state.currentLevel < CONFIG.levels) {
+                            this.state.currentLevel++;
+                            this.loadLevel(this.state.currentLevel);
+                            this.state.gameRunning = true;
+                            this.playSound('click');
+                        } else {
+                            // Game completed
+                            if (this.domElements.gameOverText) {
+                                this.domElements.gameOverText.innerHTML = `
+                                    <h3>Congratulations!</h3>
+                                    <div class="game-over-stats">
+                                        <div class="stat-item">
+                                            <span class="stat-label">Final Score:</span>
+                                            <span class="stat-value">${this.state.score} points</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Levels Completed:</span>
+                                            <span class="stat-value">${CONFIG.levels}</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Circuit Accuracy:</span>
+                                            <span class="stat-value">${this.state.getAccuracy()}%</span>
+                                        </div>
+                                    </div>
+                                    <p>You've mastered all circuit challenges! 🎉</p>
+                                `;
+                            }
+                            if (this.domElements.gameOverMessage) {
+                                this.domElements.gameOverMessage.style.display = 'block';
+                            }
+                            this.playSound('levelComplete');
+                        }
+                    });
+                }
+
+                // Restart button
+                if (this.domElements.restartButton) {
+                    this.domElements.restartButton.addEventListener('click', () => {
+                        this.state = new GameState();
+                        this.loadLevel(1);
+                        this.showStartScreen();
+                        this.playSound('click');
+                    });
+                }
+
+                // Resume button
+                if (this.domElements.resumeButton) {
+                    this.domElements.resumeButton.addEventListener('click', () => {
+                        this.togglePause();
+                        this.playSound('click');
+                    });
+                }
+
+                // Submit answer button
+                if (this.domElements.submitAnswerBtn) {
+                    this.domElements.submitAnswerBtn.addEventListener('click', () => {
+                        this.submitAnswer();
+                        this.playSound('click');
+                    });
+                }
+
+                // Sound toggle in game
+                if (this.domElements.soundToggle) {
+                    this.domElements.soundToggle.addEventListener('click', () => {
+                        this.state.soundEnabled = !this.state.soundEnabled;
+                        if (this.domElements.soundIcon) {
+                            this.domElements.soundIcon.className = this.state.soundEnabled ? 
+                                'fas fa-volume-up sound-icon' : 
+                                'fas fa-volume-mute sound-icon';
+                        }
+                        this.playSound('click');
+                    });
+                }
+
+                // Window resize
+                window.addEventListener('resize', () => {
+                    this.resizeCanvas();
+                    if (this.state.gameRunning && !this.state.paused) {
+                        this.loadLevel(this.state.currentLevel);
+                    }
+                });
+            }
+
+            setupJoystick() {
+                const joystick = document.getElementById('joystick');
+                const joystickHandle = document.getElementById('joystick-handle');
+                
+                if (!joystick || !joystickHandle) return;
+                
+                let joystickCenterX = 0;
+                let joystickCenterY = 0;
+                let joystickRadius = 0;
+
+                const initJoystick = () => {
+                    const rect = joystick.getBoundingClientRect();
+                    joystickCenterX = rect.left + rect.width / 2;
+                    joystickCenterY = rect.top + rect.height / 2;
+                    joystickRadius = rect.width / 2 - 30;
+                };
+
+                const startJoystickControl = (e) => {
+                    e.preventDefault();
+                    this.state.joystickActive = true;
+                    document.addEventListener('mousemove', moveJoystick);
+                    document.addEventListener('touchmove', moveJoystick);
+                    document.addEventListener('mouseup', endJoystickControl);
+                    document.addEventListener('touchend', endJoystickControl);
+                };
+
+                const moveJoystick = (e) => {
+                    if (!this.state.joystickActive) return;
+                    
+                    e.preventDefault();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    
+                    const dx = clientX - joystickCenterX;
+                    const dy = clientY - joystickCenterY;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    
+                    let moveX = dx;
+                    let moveY = dy;
+                    
+                    if (distance > joystickRadius) {
+                        moveX = (dx / distance) * joystickRadius;
+                        moveY = (dy / distance) * joystickRadius;
+                    }
+                    
+                    joystickHandle.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                    
+                    const threshold = joystickRadius / 3;
+                    this.input.keys.left = moveX < -threshold;
+                    this.input.keys.right = moveX > threshold;
+                    this.input.keys.up = moveY < -threshold;
+                    this.input.keys.down = moveY > threshold;
+                    this.input.keys.jump = distance > joystickRadius * 0.8 && moveY < -threshold;
+                };
+
+                const endJoystickControl = () => {
+                    this.state.joystickActive = false;
+                    joystickHandle.style.transform = 'translate(-50%, -50%)';
+                    
+                    this.input.keys.left = false;
+                    this.input.keys.right = false;
+                    this.input.keys.up = false;
+                    this.input.keys.down = false;
+                    this.input.keys.jump = false;
+                    
+                    document.removeEventListener('mousemove', moveJoystick);
+                    document.removeEventListener('touchmove', moveJoystick);
+                    document.removeEventListener('mouseup', endJoystickControl);
+                    document.removeEventListener('touchend', endJoystickControl);
+                };
+
+                joystickHandle.addEventListener('mousedown', startJoystickControl);
+                joystickHandle.addEventListener('touchstart', startJoystickControl);
+
+                initJoystick();
+                window.addEventListener('load', initJoystick);
+                window.addEventListener('resize', initJoystick);
+            }
+
+            submitAnswer() {
+                if (this.state.questionAnswered || this.state.selectedOption === null) return;
+                
+                const options = document.querySelectorAll('.option');
+                const isCorrect = this.state.selectedOption === this.state.currentQuestion.correct;
+                
+                // Mark correct/incorrect
+                options.forEach((option, index) => {
+                    if (index === this.state.currentQuestion.correct) {
+                        option.classList.add('correct');
+                    } else if (index === this.state.selectedOption && !isCorrect) {
+                        option.classList.add('incorrect');
+                    }
+                });
+                
+                this.state.questionAnswered = true;
+                this.state.updateStats(isCorrect);
+                if (this.domElements.submitAnswerBtn) {
+                    this.domElements.submitAnswerBtn.disabled = true;
+                }
+                
+                if (isCorrect) {
+                    // Unlock door
+                    if (this.doors.length > 0) {
+                        this.doors[0].locked = false;
+                    }
+                    this.state.score += 500;
+                    this.playSound('correct');
+                } else {
+                    // Penalty
+                    this.state.energy -= 20;
+                    if (this.state.energy < 0) this.state.energy = 0;
+                    this.playSound('wrong');
+                }
+                
+                this.updateUI();
+            }
+        }
+
+        // Initialize game when page loads
+        window.addEventListener('load', () => {
+            window.gameInstance = new Game();
+        });
+    </script>
+</body>
+</html>
