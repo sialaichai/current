@@ -143,7 +143,10 @@ h1 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%);
   animation: energyShine 2s infinite;
 }
 @keyframes energyShine {
@@ -356,7 +359,7 @@ h1 {
   transform: none;
 }
 
-/* Game Messages (Level Complete, Game Over, Pause) */
+/* Game Messages (including Start Screen) */
 .game-message {
   position: fixed;
   top: 50%;
@@ -368,7 +371,7 @@ h1 {
   text-align: center;
   border: 3px solid #00a0ff;
   box-shadow: 0 0 40px rgba(0, 160, 255, 0.5);
-  z-index: 1000;
+  z-index: 2000; /* Critical: higher than everything */
   display: none;
   min-width: 500px;
   max-width: 90vw;
@@ -395,17 +398,11 @@ h1 {
   margin-top: 30px;
 }
 
-/* START SCREEN — Normal document flow, scrollable */
+/* START SCREEN — inherits from .game-message, no extra positioning needed */
 .start-screen {
   width: 90%;
   max-width: 1000px;
   padding: 30px;
-  background: rgba(0, 0, 0, 0.95);
-  border-radius: 15px;
-  border: 3px solid #00a0ff;
-  box-shadow: 0 0 40px rgba(0, 160, 255, 0.5);
-  margin: 20px auto;
-  z-index: 900;
 }
 .start-header {
   text-align: center;
@@ -704,20 +701,4 @@ h1 {
     gap: 10px;
   }
   .controls-panel { order: -1; }
-}
-
-/* Initial Visibility */
-#game-canvas-container,
-.controls-panel {
-  display: none;
-}
-
-/* Show game when start screen is hidden */
-body:not(.showing-start) #game-canvas-container,
-body:not(.showing-start) .controls-panel {
-  display: block !important;
-}
-body.showing-start #game-canvas-container,
-body.showing-start .controls-panel {
-  display: none !important;
 }
