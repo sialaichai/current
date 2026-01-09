@@ -1,0 +1,2198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Robot: Circuit Factory Adventure</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a1625 0%, #1a2b3e 100%);
+            color: #e0f0ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            width: 100%;
+            border-bottom: 2px solid #2a5a8c;
+            margin-bottom: 20px;
+            background: rgba(10, 30, 60, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            color: #00f0ff;
+            font-size: 2.8rem;
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.7);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            color: #80d0ff;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Game Canvas */
+        #game-canvas-container {
+            position: relative;
+            background: #0f1a2d;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #2a5a8c;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            height: 700px;
+        }
+
+        #game-canvas {
+            display: block;
+            background: #0a1425;
+        }
+
+        /* Game UI Overlay */
+        .game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            pointer-events: none;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .robots-left {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 2px solid #00a0ff;
+        }
+
+        .robot-icon {
+            font-size: 1.8rem;
+            color: #ff3333;
+            margin-right: 10px;
+        }
+
+        .robot-count {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .energy-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: 2px solid #00ff88;
+            min-width: 200px;
+        }
+
+        .energy-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .energy-bar {
+            height: 20px;
+            background: #152642;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(to right, #00ff88, #00cc66);
+            border-radius: 10px;
+            width: 100%;
+            transition: width 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .energy-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                transparent 100%);
+            animation: energyShine 2s infinite;
+        }
+
+        @keyframes energyShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .score-display {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: 2px solid #ffcc00;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+
+        .level-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: 2px solid #aa66ff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #aa66ff;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(20, 40, 80, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            border: 2px solid #3a7abc;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            height: fit-content;
+        }
+
+        .panel-title {
+            color: #4fc3ff;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            text-align: center;
+            border-bottom: 2px solid #3a7abc;
+            padding-bottom: 15px;
+        }
+
+        .circuit-question {
+            background: rgba(30, 60, 120, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 5px solid #00a0ff;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            color: #e0f0ff;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background: rgba(40, 80, 140, 0.7);
+            border: 2px solid #2a5a8c;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .option:hover {
+            background: rgba(50, 100, 160, 0.9);
+            border-color: #4fc3ff;
+            transform: translateY(-2px);
+        }
+
+        .option.correct {
+            background: rgba(0, 150, 80, 0.8);
+            border-color: #00ffaa;
+        }
+
+        .option.incorrect {
+            background: rgba(180, 40, 40, 0.8);
+            border-color: #ff5555;
+        }
+
+        .power-ups {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .power-up {
+            background: rgba(30, 60, 120, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .power-up.active {
+            border-color: #ffcc00;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+        }
+
+        .power-up-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .power-up.ring .power-up-icon {
+            color: #00ffaa;
+        }
+
+        .power-up.invulnerable .power-up-icon {
+            color: #ffcc00;
+        }
+
+        .power-up.bomb .power-up-icon {
+            color: #ff5555;
+        }
+
+        .power-up-name {
+            font-size: 0.9rem;
+            color: #a0d0ff;
+        }
+
+        .power-up-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            margin-top: 5px;
+        }
+
+        .controls-instruction {
+            background: rgba(30, 60, 120, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+            border-left: 5px solid #ffcc00;
+        }
+
+        .controls-title {
+            color: #ffcc00;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+
+        .control-key {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #3a7abc;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #4fc3ff;
+        }
+
+        .control-action {
+            font-size: 0.9rem;
+            color: #a0d0ff;
+            margin-top: 5px;
+        }
+
+        .joystick-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .joystick {
+            width: 150px;
+            height: 150px;
+            background: rgba(30, 60, 120, 0.9);
+            border-radius: 50%;
+            position: relative;
+            border: 3px solid #3a7abc;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .joystick-handle {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #4fc3ff, #2a8cd0);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Game Messages */
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 40px 60px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid #00a0ff;
+            box-shadow: 0 0 40px rgba(0, 160, 255, 0.5);
+            z-index: 100;
+            display: none;
+        }
+
+        .message-title {
+            color: #00f0ff;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.7);
+        }
+
+        .message-text {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            color: #e0f0ff;
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 0 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #00a8ff, #0088cc);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to right, #0088cc, #006699);
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.7);
+            transform: translateY(-3px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(to right, #ff8800, #cc6600);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(to right, #cc6600, #994400);
+            box-shadow: 0 0 20px rgba(255, 136, 0, 0.7);
+            transform: translateY(-3px);
+        }
+
+        /* Sound Toggle */
+        .sound-toggle {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #ffcc00;
+            z-index: 10;
+            pointer-events: auto;
+        }
+
+        .sound-icon {
+            font-size: 1.5rem;
+            color: #ffcc00;
+        }
+
+        /* Mobile Controls */
+        .mobile-controls {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            justify-content: space-between;
+            pointer-events: auto;
+        }
+
+        .mobile-btn {
+            width: 80px;
+            height: 80px;
+            background: rgba(40, 80, 140, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #fff;
+            border: 3px solid #3a7abc;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .mobile-arrows {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .mobile-arrow {
+            width: 70px;
+            height: 70px;
+            background: rgba(40, 80, 140, 0.8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #fff;
+            border: 3px solid #3a7abc;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+            
+            #game-canvas-container {
+                height: 500px;
+            }
+            
+            .mobile-controls {
+                display: flex;
+            }
+            
+            .joystick-container {
+                display: none;
+            }
+        }
+
+        /* Circuit elements styling */
+        .circuit-element {
+            position: absolute;
+            font-size: 2rem;
+            color: #ffcc00;
+        }
+
+        .resistor {
+            color: #ff5555;
+        }
+
+        .capacitor {
+            color: #55ff55;
+        }
+
+        .inductor {
+            color: #5555ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-robot"></i> Mr. Robot: Circuit Factory Adventure</h1>
+            <p class="tagline">Navigate the factory, collect power pills, solve circuit puzzles, and avoid fireballs!</p>
+        </header>
+
+        <div class="game-container">
+            <div id="game-canvas-container">
+                <canvas id="game-canvas" width="800" height="700"></canvas>
+                
+                <div class="game-ui">
+                    <div class="status-bar">
+                        <div class="robots-left">
+                            <i class="fas fa-robot robot-icon"></i>
+                            <span class="robot-count" id="robot-count">4</span>
+                        </div>
+                        
+                        <div class="energy-container">
+                            <div class="energy-label">
+                                <span>ENERGY</span>
+                                <span id="energy-value">100</span>
+                            </div>
+                            <div class="energy-bar">
+                                <div class="energy-fill" id="energy-fill"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="score-display">
+                            <span id="score">0</span> pts
+                        </div>
+                    </div>
+                    
+                    <div class="level-info">
+                        Level <span id="level">1</span>: <span id="level-name">Basic Circuits</span>
+                    </div>
+                </div>
+                
+                <div class="sound-toggle" id="sound-toggle">
+                    <i class="fas fa-volume-up sound-icon" id="sound-icon"></i>
+                </div>
+                
+                <div class="mobile-controls">
+                    <div class="mobile-btn" id="mobile-jump">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="mobile-arrows">
+                        <div></div>
+                        <div class="mobile-arrow" id="mobile-up">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div></div>
+                        <div class="mobile-arrow" id="mobile-left">
+                            <i class="fas fa-arrow-left"></i>
+                        </div>
+                        <div class="mobile-arrow" id="mobile-down">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="mobile-arrow" id="mobile-right">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls-panel">
+                <h2 class="panel-title">Circuit Challenge</h2>
+                
+                <div class="circuit-question">
+                    <div class="question-text" id="question-text">
+                        What is the unit of electrical resistance?
+                    </div>
+                    
+                    <div class="options-container" id="options-container">
+                        <div class="option" data-index="0">A. Volt</div>
+                        <div class="option" data-index="1">B. Ampere</div>
+                        <div class="option" data-index="2">C. Ohm</div>
+                        <div class="option" data-index="3">D. Watt</div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-primary" id="submit-answer">
+                            <i class="fas fa-check-circle"></i> Submit Answer
+                        </button>
+                    </div>
+                </div>
+                
+                <h2 class="panel-title">Power Ups</h2>
+                
+                <div class="power-ups">
+                    <div class="power-up ring">
+                        <div class="power-up-icon">
+                            <i class="fas fa-ring"></i>
+                        </div>
+                        <div class="power-up-name">Circuit Ring</div>
+                        <div class="power-up-count" id="ring-count">0</div>
+                    </div>
+                    
+                    <div class="power-up invulnerable">
+                        <div class="power-up-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="power-up-name">Invulnerability</div>
+                        <div class="power-up-count" id="inv-time">0s</div>
+                    </div>
+                    
+                    <div class="power-up bomb">
+                        <div class="power-up-icon">
+                            <i class="fas fa-bomb"></i>
+                        </div>
+                        <div class="power-up-name">Circuit Bomb</div>
+                        <div class="power-up-count" id="bomb-count">0</div>
+                    </div>
+                </div>
+                
+                <div class="controls-instruction">
+                    <div class="controls-title">
+                        <i class="fas fa-gamepad"></i> Controls
+                    </div>
+                    
+                    <div class="controls-grid">
+                        <div>
+                            <div class="control-key">← →</div>
+                            <div class="control-action">Move</div>
+                        </div>
+                        <div>
+                            <div class="control-key">↑</div>
+                            <div class="control-action">Climb/Jump</div>
+                        </div>
+                        <div>
+                            <div class="control-key">SPACE</div>
+                            <div class="control-action">Jump</div>
+                        </div>
+                        <div>
+                            <div class="control-key">A / D</div>
+                            <div class="control-action">Move</div>
+                        </div>
+                        <div>
+                            <div class="control-key">W</div>
+                            <div class="control-action">Climb Up</div>
+                        </div>
+                        <div>
+                            <div class="control-key">S</div>
+                            <div class="control-action">Climb Down</div>
+                        </div>
+                    </div>
+                    
+                    <div class="joystick-container">
+                        <div class="joystick" id="joystick">
+                            <div class="joystick-handle" id="joystick-handle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Messages -->
+        <div class="game-message" id="start-message">
+            <h2 class="message-title">Mr. Robot's Circuit Factory</h2>
+            <p class="message-text">
+                Navigate the factory platforms, collect white power pills (10 pts each),<br>
+                and avoid fireballs! Collect rings for invulnerability.<br>
+                Solve circuit questions to unlock doors and progress.<br>
+                Complete each level before your energy runs out!
+            </p>
+            <button class="btn btn-primary" id="start-button">
+                <i class="fas fa-play"></i> Start Game
+            </button>
+        </div>
+        
+        <div class="game-message" id="level-complete-message" style="display: none;">
+            <h2 class="message-title">Level Complete!</h2>
+            <p class="message-text" id="level-complete-text">
+                You completed Level 1 with 85 energy remaining!<br>
+                Bonus: 8500 points!
+            </p>
+            <button class="btn btn-primary" id="next-level-button">
+                <i class="fas fa-forward"></i> Next Level
+            </button>
+        </div>
+        
+        <div class="game-message" id="game-over-message" style="display: none;">
+            <h2 class="message-title">Factory Shutdown!</h2>
+            <p class="message-text" id="game-over-text">
+                All robots have been deactivated!<br>
+                Final Score: 0 points
+            </p>
+            <button class="btn btn-primary" id="restart-button">
+                <i class="fas fa-redo"></i> Restart Game
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Game Configuration
+        const CONFIG = {
+            gravity: 0.5,
+            jumpForce: -12,
+            moveSpeed: 5,
+            climbSpeed: 4,
+            energyDrainRate: 0.02, // per frame (about 1 per second at 60fps)
+            initialRobots: 4,
+            initialEnergy: 100,
+            levels: 22
+        };
+
+        // Game State
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            robots: CONFIG.initialRobots,
+            energy: CONFIG.initialEnergy,
+            gameRunning: false,
+            gameOver: false,
+            levelComplete: false,
+            invulnerable: false,
+            invulnerabilityTime: 0,
+            rings: 0,
+            bombs: 0,
+            soundEnabled: true,
+            currentQuestion: null,
+            questionAnswered: false,
+            joystickActive: false
+        };
+
+        // Game Objects
+        const gameObjects = {
+            player: null,
+            platforms: [],
+            powerPills: [],
+            rings: [],
+            fireballs: [],
+            bombs: [],
+            magnets: [],
+            doors: [],
+            ladders: []
+        };
+
+        // Circuit Questions Database (Bloom's Taxonomy levels 1-5)
+        const circuitQuestions = [
+            // Level 1: Remembering
+            {
+                question: "What is the unit of electrical resistance?",
+                options: ["Volt", "Ampere", "Ohm", "Watt"],
+                correct: 2,
+                level: 1
+            },
+            {
+                question: "Which component stores electrical energy in a circuit?",
+                options: ["Resistor", "Capacitor", "Transistor", "Inductor"],
+                correct: 1,
+                level: 1
+            },
+            // Level 2: Understanding
+            {
+                question: "If you increase resistance while keeping voltage constant, what happens to current?",
+                options: ["Increases", "Decreases", "Stays same", "Becomes zero"],
+                correct: 1,
+                level: 2
+            },
+            {
+                question: "In a parallel circuit, if one component fails, what happens to the others?",
+                options: ["All stop", "Only that one stops", "They get brighter", "Current increases"],
+                correct: 1,
+                level: 2
+            },
+            // Level 3: Applying
+            {
+                question: "A 12V battery with a 4Ω resistor gives what current?",
+                options: ["3A", "48A", "0.33A", "8A"],
+                correct: 0,
+                level: 3
+            },
+            {
+                question: "Three 9Ω resistors in parallel have what total resistance?",
+                options: ["27Ω", "9Ω", "3Ω", "1Ω"],
+                correct: 2,
+                level: 3
+            },
+            // Level 4: Analyzing
+            {
+                question: "Two bulbs in series: A is brighter than B. Which has higher resistance?",
+                options: ["Bulb A", "Bulb B", "Same", "Cannot determine"],
+                correct: 0,
+                level: 4
+            },
+            {
+                question: "In a circuit with 12V battery, resistor drops 4V. What about the rest?",
+                options: ["Other components use 8V", "Only one resistor", "Battery faulty", "No other components"],
+                correct: 0,
+                level: 4
+            },
+            // Level 5: Evaluating
+            {
+                question: "Which resistor configuration gives highest total resistance?",
+                options: ["All series", "All parallel", "Mixed", "Depends on values"],
+                correct: 0,
+                level: 5
+            },
+            {
+                question: "How should you connect an ammeter to measure current?",
+                options: ["Parallel", "Series", "Across supply", "Doesn't matter"],
+                correct: 1,
+                level: 5
+            }
+        ];
+
+        // DOM Elements
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const robotCountEl = document.getElementById('robot-count');
+        const energyValueEl = document.getElementById('energy-value');
+        const energyFillEl = document.getElementById('energy-fill');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const levelNameEl = document.getElementById('level-name');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainerEl = document.getElementById('options-container');
+        const submitAnswerBtn = document.getElementById('submit-answer');
+        const ringCountEl = document.getElementById('ring-count');
+        const invTimeEl = document.getElementById('inv-time');
+        const bombCountEl = document.getElementById('bomb-count');
+        const soundToggle = document.getElementById('sound-toggle');
+        const soundIcon = document.getElementById('sound-icon');
+        const startMessage = document.getElementById('start-message');
+        const startButton = document.getElementById('start-button');
+        const levelCompleteMessage = document.getElementById('level-complete-message');
+        const levelCompleteText = document.getElementById('level-complete-text');
+        const nextLevelButton = document.getElementById('next-level-button');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const gameOverText = document.getElementById('game-over-text');
+        const restartButton = document.getElementById('restart-button');
+        const joystick = document.getElementById('joystick');
+        const joystickHandle = document.getElementById('joystick-handle');
+        
+        // Mobile controls
+        const mobileJump = document.getElementById('mobile-jump');
+        const mobileUp = document.getElementById('mobile-up');
+        const mobileDown = document.getElementById('mobile-down');
+        const mobileLeft = document.getElementById('mobile-left');
+        const mobileRight = document.getElementById('mobile-right');
+
+        // Input State
+        const input = {
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            jump: false,
+            space: false
+        };
+
+        // Initialize Game
+        function initGame() {
+            // Set canvas size
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            
+            // Reset game state
+            gameState.currentLevel = 1;
+            gameState.score = 0;
+            gameState.robots = CONFIG.initialRobots;
+            gameState.energy = CONFIG.initialEnergy;
+            gameState.gameRunning = false;
+            gameState.gameOver = false;
+            gameState.levelComplete = false;
+            gameState.invulnerable = false;
+            gameState.invulnerabilityTime = 0;
+            gameState.rings = 0;
+            gameState.bombs = 0;
+            gameState.questionAnswered = false;
+            
+            // Update UI
+            updateUI();
+            
+            // Show start message
+            startMessage.style.display = 'block';
+            levelCompleteMessage.style.display = 'none';
+            gameOverMessage.style.display = 'none';
+            
+            // Load first level
+            loadLevel(1);
+        }
+
+        // Load a level
+        function loadLevel(level) {
+            gameObjects.platforms = [];
+            gameObjects.powerPills = [];
+            gameObjects.rings = [];
+            gameObjects.fireballs = [];
+            gameObjects.bombs = [];
+            gameObjects.magnets = [];
+            gameObjects.doors = [];
+            gameObjects.ladders = [];
+            
+            // Set level-specific parameters
+            const levelConfig = getLevelConfig(level);
+            
+            // Create platforms
+            createPlatforms(levelConfig);
+            
+            // Create power pills
+            createPowerPills(levelConfig);
+            
+            // Create rings
+            createRings(levelConfig);
+            
+            // Create fireballs
+            createFireballs(levelConfig);
+            
+            // Create bombs (for later levels)
+            if (level >= 8) {
+                createBombs(levelConfig);
+            }
+            
+            // Create magnets (for later levels)
+            if (level >= 12) {
+                createMagnets(levelConfig);
+            }
+            
+            // Create player
+            gameObjects.player = {
+                x: 100,
+                y: canvas.height - 150,
+                width: 40,
+                height: 60,
+                velocityX: 0,
+                velocityY: 0,
+                onGround: false,
+                climbing: false,
+                facingRight: true
+            };
+            
+            // Create doors
+            gameObjects.doors.push({
+                x: canvas.width - 150,
+                y: 100,
+                width: 60,
+                height: 100,
+                locked: true,
+                question: getRandomQuestionForLevel(level)
+            });
+            
+            // Create ladders
+            createLadders(levelConfig);
+            
+            // Update level display
+            levelEl.textContent = level;
+            levelNameEl.textContent = getLevelName(level);
+            
+            // Reset question
+            loadQuestionForDoor();
+            
+            // Reset game state for level
+            gameState.energy = CONFIG.initialEnergy;
+            gameState.levelComplete = false;
+            gameState.questionAnswered = false;
+            gameState.invulnerable = false;
+            gameState.invulnerabilityTime = 0;
+            
+            updateUI();
+        }
+
+        // Get level configuration
+        function getLevelConfig(level) {
+            const baseY = canvas.height - 100;
+            const config = {
+                platforms: [],
+                powerPills: 15 + level * 3,
+                rings: 3 + Math.floor(level / 3),
+                fireballs: 2 + Math.floor(level / 4),
+                ladders: []
+            };
+            
+            // Create platforms for this level
+            // Ground platform
+            config.platforms.push({ x: 0, y: baseY, width: canvas.width, height: 20 });
+            
+            // Additional platforms
+            if (level === 1) {
+                config.platforms.push({ x: 200, y: baseY - 150, width: 200, height: 20 });
+                config.platforms.push({ x: 500, y: baseY - 250, width: 200, height: 20 });
+                config.ladders.push({ x: 300, y: baseY - 150, width: 20, height: 150 });
+            } else if (level === 2) {
+                config.platforms.push({ x: 150, y: baseY - 100, width: 150, height: 20 });
+                config.platforms.push({ x: 400, y: baseY - 200, width: 150, height: 20 });
+                config.platforms.push({ x: 650, y: baseY - 100, width: 150, height: 20 });
+                config.ladders.push({ x: 225, y: baseY - 100, width: 20, height: 100 });
+                config.ladders.push({ x: 475, y: baseY - 200, width: 20, height: 200 });
+            } else {
+                // Procedural generation for higher levels
+                for (let i = 0; i < 5 + level; i++) {
+                    const x = 100 + i * 120;
+                    const y = baseY - 50 - (i % 3) * 100;
+                    const width = 80 + Math.random() * 100;
+                    config.platforms.push({ x, y, width, height: 20 });
+                    
+                    if (i % 2 === 0 && i > 0) {
+                        config.ladders.push({ 
+                            x: x + width/2 - 10, 
+                            y: y, 
+                            width: 20, 
+                            height: 100 
+                        });
+                    }
+                }
+            }
+            
+            return config;
+        }
+
+        // Create platforms
+        function createPlatforms(config) {
+            config.platforms.forEach(platform => {
+                gameObjects.platforms.push({
+                    x: platform.x,
+                    y: platform.y,
+                    width: platform.width,
+                    height: platform.height
+                });
+            });
+        }
+
+        // Create power pills
+        function createPowerPills(config) {
+            for (let i = 0; i < config.powerPills; i++) {
+                // Distribute pills across platforms
+                const platform = gameObjects.platforms[i % gameObjects.platforms.length];
+                gameObjects.powerPills.push({
+                    x: platform.x + 20 + Math.random() * (platform.width - 40),
+                    y: platform.y - 15,
+                    radius: 8,
+                    collected: false
+                });
+            }
+        }
+
+        // Create rings
+        function createRings(config) {
+            for (let i = 0; i < config.rings; i++) {
+                // Place rings in harder-to-reach locations
+                const platform = gameObjects.platforms[Math.min(i + 2, gameObjects.platforms.length - 1)];
+                gameObjects.rings.push({
+                    x: platform.x + platform.width/2,
+                    y: platform.y - 30,
+                    radius: 15,
+                    collected: false,
+                    pulse: 0
+                });
+            }
+        }
+
+        // Create fireballs
+        function createFireballs(config) {
+            for (let i = 0; i < config.fireballs; i++) {
+                const platform = gameObjects.platforms[i % gameObjects.platforms.length];
+                gameObjects.fireballs.push({
+                    x: platform.x + 30,
+                    y: platform.y - 20,
+                    radius: 15,
+                    speed: 1 + Math.random() * 2,
+                    direction: Math.random() > 0.5 ? 1 : -1,
+                    minX: platform.x + 20,
+                    maxX: platform.x + platform.width - 20
+                });
+            }
+        }
+
+        // Create bombs
+        function createBombs(config) {
+            // Add bombs to higher platforms
+            for (let i = 0; i < Math.min(3, gameObjects.platforms.length - 2); i++) {
+                const platform = gameObjects.platforms[i + 2];
+                gameObjects.bombs.push({
+                    x: platform.x + platform.width/2,
+                    y: platform.y - 15,
+                    radius: 12,
+                    active: true,
+                    fuse: 300 + Math.random() * 300 // frames until explosion
+                });
+            }
+        }
+
+        // Create magnets
+        function createMagnets(config) {
+            // Add magnets to attract player
+            for (let i = 0; i < 2; i++) {
+                gameObjects.magnets.push({
+                    x: 200 + i * 400,
+                    y: 200,
+                    radius: 25,
+                    strength: 0.5,
+                    active: true
+                });
+            }
+        }
+
+        // Create ladders
+        function createLadders(config) {
+            config.ladders.forEach(ladder => {
+                gameObjects.ladders.push({
+                    x: ladder.x,
+                    y: ladder.y,
+                    width: ladder.width,
+                    height: ladder.height
+                });
+            });
+        }
+
+        // Get level name
+        function getLevelName(level) {
+            const names = [
+                "Basic Circuits", "Current Flow", "Resistance Training", "Voltage Valley",
+                "Parallel Paths", "Series Circuits", "Ohm's Outpost", "Power Plant",
+                "Capacitor Cavern", "Transformer Tower", "Magnetic Maze", "Inductor Island",
+                "Circuit Breaker", "Generator Gorge", "Transistor Trail", "Diode Dungeon",
+                "Resistor Ridge", "Capacitor Cliff", "Transformer Trail", "Generator Gulch",
+                "Final Circuit", "The Power Core"
+            ];
+            return names[level - 1] || `Circuit Level ${level}`;
+        }
+
+        // Get random question for level
+        function getRandomQuestionForLevel(level) {
+            const levelQuestions = circuitQuestions.filter(q => q.level <= Math.min(5, Math.ceil(level/5)));
+            return levelQuestions[Math.floor(Math.random() * levelQuestions.length)];
+        }
+
+        // Load question for door
+        function loadQuestionForDoor() {
+            if (gameObjects.doors.length > 0) {
+                gameState.currentQuestion = gameObjects.doors[0].question;
+                questionTextEl.textContent = gameState.currentQuestion.question;
+                
+                // Clear options
+                optionsContainerEl.innerHTML = '';
+                
+                // Add options
+                gameState.currentQuestion.options.forEach((option, index) => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'option';
+                    optionEl.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                    optionEl.dataset.index = index;
+                    
+                    optionEl.addEventListener('click', () => {
+                        if (!gameState.questionAnswered) {
+                            // Deselect all options
+                            document.querySelectorAll('.option').forEach(opt => {
+                                opt.classList.remove('selected');
+                            });
+                            
+                            // Select this option
+                            optionEl.classList.add('selected');
+                            gameState.selectedOption = index;
+                        }
+                    });
+                    
+                    optionsContainerEl.appendChild(optionEl);
+                });
+                
+                gameState.questionAnswered = false;
+                submitAnswerBtn.disabled = false;
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            robotCountEl.textContent = gameState.robots;
+            energyValueEl.textContent = Math.floor(gameState.energy);
+            energyFillEl.style.width = `${gameState.energy}%`;
+            scoreEl.textContent = gameState.score;
+            ringCountEl.textContent = gameState.rings;
+            invTimeEl.textContent = `${Math.floor(gameState.invulnerabilityTime/60)}s`;
+            bombCountEl.textContent = gameState.bombs;
+            
+            // Update power-up displays
+            document.querySelector('.power-up.invulnerable').classList.toggle('active', gameState.invulnerable);
+        }
+
+        // Game Loop
+        function gameLoop() {
+            if (!gameState.gameRunning || gameState.gameOver || gameState.levelComplete) {
+                return;
+            }
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Apply gravity
+            if (!gameObjects.player.climbing) {
+                gameObjects.player.velocityY += CONFIG.gravity;
+            }
+            
+            // Handle input
+            handleMovement();
+            
+            // Update player position
+            gameObjects.player.x += gameObjects.player.velocityX;
+            gameObjects.player.y += gameObjects.player.velocityY;
+            
+            // Boundary checking
+            if (gameObjects.player.x < 0) gameObjects.player.x = 0;
+            if (gameObjects.player.x > canvas.width - gameObjects.player.width) {
+                gameObjects.player.x = canvas.width - gameObjects.player.width;
+            }
+            
+            // Platform collision
+            gameObjects.player.onGround = false;
+            gameObjects.player.climbing = false;
+            
+            // Check if player is on a ladder
+            for (const ladder of gameObjects.ladders) {
+                if (gameObjects.player.x + gameObjects.player.width > ladder.x &&
+                    gameObjects.player.x < ladder.x + ladder.width &&
+                    gameObjects.player.y + gameObjects.player.height > ladder.y &&
+                    gameObjects.player.y < ladder.y + ladder.height) {
+                    
+                    gameObjects.player.climbing = true;
+                    if (input.up) {
+                        gameObjects.player.y -= CONFIG.climbSpeed;
+                    }
+                    if (input.down && gameObjects.player.y < canvas.height - gameObjects.player.height) {
+                        gameObjects.player.y += CONFIG.climbSpeed;
+                    }
+                    break;
+                }
+            }
+            
+            // Platform collision detection
+            for (const platform of gameObjects.platforms) {
+                if (gameObjects.player.x < platform.x + platform.width &&
+                    gameObjects.player.x + gameObjects.player.width > platform.x &&
+                    gameObjects.player.y < platform.y + platform.height &&
+                    gameObjects.player.y + gameObjects.player.height > platform.y) {
+                    
+                    // Top collision
+                    if (gameObjects.player.velocityY > 0 && 
+                        gameObjects.player.y + gameObjects.player.height - gameObjects.player.velocityY <= platform.y) {
+                        gameObjects.player.y = platform.y - gameObjects.player.height;
+                        gameObjects.player.velocityY = 0;
+                        gameObjects.player.onGround = true;
+                    }
+                    // Bottom collision
+                    else if (gameObjects.player.velocityY < 0 &&
+                             gameObjects.player.y - gameObjects.player.velocityY >= platform.y + platform.height) {
+                        gameObjects.player.y = platform.y + platform.height;
+                        gameObjects.player.velocityY = 0;
+                    }
+                    // Side collision
+                    else {
+                        if (gameObjects.player.velocityX > 0) {
+                            gameObjects.player.x = platform.x - gameObjects.player.width;
+                        } else if (gameObjects.player.velocityX < 0) {
+                            gameObjects.player.x = platform.x + platform.width;
+                        }
+                        gameObjects.player.velocityX = 0;
+                    }
+                }
+            }
+            
+            // Collect power pills
+            for (const pill of gameObjects.powerPills) {
+                if (!pill.collected) {
+                    const dx = gameObjects.player.x + gameObjects.player.width/2 - pill.x;
+                    const dy = gameObjects.player.y + gameObjects.player.height/2 - pill.y;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (distance < gameObjects.player.width/2 + pill.radius) {
+                        pill.collected = true;
+                        gameState.score += 10;
+                        playSound('collect');
+                    }
+                }
+            }
+            
+            // Collect rings
+            for (const ring of gameObjects.rings) {
+                if (!ring.collected) {
+                    ring.pulse = (ring.pulse + 0.1) % (Math.PI * 2);
+                    const dx = gameObjects.player.x + gameObjects.player.width/2 - ring.x;
+                    const dy = gameObjects.player.y + gameObjects.player.height/2 - ring.y;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (distance < gameObjects.player.width/2 + ring.radius) {
+                        ring.collected = true;
+                        gameState.rings++;
+                        gameState.score += 100;
+                        gameState.invulnerable = true;
+                        gameState.invulnerabilityTime = 600; // 10 seconds at 60fps
+                        playSound('ring');
+                    }
+                }
+            }
+            
+            // Update invulnerability
+            if (gameState.invulnerable) {
+                gameState.invulnerabilityTime--;
+                if (gameState.invulnerabilityTime <= 0) {
+                    gameState.invulnerable = false;
+                }
+            }
+            
+            // Update fireballs
+            for (const fireball of gameObjects.fireballs) {
+                fireball.x += fireball.speed * fireball.direction;
+                
+                // Bounce at boundaries
+                if (fireball.x <= fireball.minX || fireball.x >= fireball.maxX) {
+                    fireball.direction *= -1;
+                }
+                
+                // Check collision with player
+                if (!gameState.invulnerable) {
+                    const dx = gameObjects.player.x + gameObjects.player.width/2 - fireball.x;
+                    const dy = gameObjects.player.y + gameObjects.player.height/2 - fireball.y;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (distance < gameObjects.player.width/2 + fireball.radius) {
+                        loseRobot();
+                        playSound('hit');
+                    }
+                }
+            }
+            
+            // Update bombs
+            for (const bomb of gameObjects.bombs) {
+                if (bomb.active) {
+                    bomb.fuse--;
+                    
+                    if (bomb.fuse <= 0) {
+                        bomb.active = false;
+                        // Explosion effect
+                        createExplosion(bomb.x, bomb.y);
+                    }
+                    
+                    // Check collision
+                    const dx = gameObjects.player.x + gameObjects.player.width/2 - bomb.x;
+                    const dy = gameObjects.player.y + gameObjects.player.height/2 - bomb.y;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (distance < gameObjects.player.width/2 + bomb.radius && bomb.active) {
+                        bomb.active = false;
+                        gameState.bombs++;
+                        playSound('collect');
+                    }
+                }
+            }
+            
+            // Check door collision
+            for (const door of gameObjects.doors) {
+                if (!door.locked) {
+                    if (gameObjects.player.x < door.x + door.width &&
+                        gameObjects.player.x + gameObjects.player.width > door.x &&
+                        gameObjects.player.y < door.y + door.height &&
+                        gameObjects.player.y + gameObjects.player.height > door.y) {
+                        
+                        completeLevel();
+                    }
+                }
+            }
+            
+            // Drain energy
+            gameState.energy -= CONFIG.energyDrainRate;
+            if (gameState.energy <= 0) {
+                gameState.energy = 0;
+                loseRobot();
+            }
+            
+            // Check if all power pills collected (optional objective)
+            const allPillsCollected = gameObjects.powerPills.every(pill => pill.collected);
+            if (allPillsCollected) {
+                // Unlock door automatically
+                gameObjects.doors[0].locked = false;
+            }
+            
+            // Draw everything
+            drawGame();
+            
+            // Update UI
+            updateUI();
+            
+            // Check game over
+            if (gameState.robots <= 0) {
+                gameOver();
+            }
+            
+            // Continue game loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Handle movement input
+        function handleMovement() {
+            gameObjects.player.velocityX = 0;
+            
+            if (input.left) {
+                gameObjects.player.velocityX = -CONFIG.moveSpeed;
+                gameObjects.player.facingRight = false;
+            }
+            if (input.right) {
+                gameObjects.player.velocityX = CONFIG.moveSpeed;
+                gameObjects.player.facingRight = true;
+            }
+            
+            if (input.jump && gameObjects.player.onGround) {
+                gameObjects.player.velocityY = CONFIG.jumpForce;
+                playSound('jump');
+            }
+            
+            // Apply magnet forces
+            if (gameState.currentLevel >= 12) {
+                for (const magnet of gameObjects.magnets) {
+                    if (magnet.active) {
+                        const dx = magnet.x - (gameObjects.player.x + gameObjects.player.width/2);
+                        const dy = magnet.y - (gameObjects.player.y + gameObjects.player.height/2);
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if (distance < 200) {
+                            const force = magnet.strength * (1 - distance/200);
+                            gameObjects.player.velocityX += (dx/distance) * force;
+                            gameObjects.player.velocityY += (dy/distance) * force;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Draw game objects
+        function drawGame() {
+            // Draw background
+            ctx.fillStyle = '#0a1425';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(50, 100, 150, 0.1)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw platforms
+            ctx.fillStyle = '#3a7abc';
+            gameObjects.platforms.forEach(platform => {
+                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                ctx.strokeStyle = '#5a9aec';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+            });
+            
+            // Draw ladders
+            ctx.fillStyle = '#8b7355';
+            gameObjects.ladders.forEach(ladder => {
+                ctx.fillRect(ladder.x, ladder.y, ladder.width, ladder.height);
+                // Draw ladder rungs
+                ctx.fillStyle = '#5a4a35';
+                for (let y = ladder.y + 10; y < ladder.y + ladder.height; y += 20) {
+                    ctx.fillRect(ladder.x, y, ladder.width, 5);
+                }
+                ctx.fillStyle = '#8b7355';
+            });
+            
+            // Draw power pills
+            gameObjects.powerPills.forEach(pill => {
+                if (!pill.collected) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(pill.x, pill.y, pill.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Glow effect
+                    ctx.shadowColor = '#ffffff';
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            });
+            
+            // Draw rings
+            gameObjects.rings.forEach(ring => {
+                if (!ring.collected) {
+                    const pulseSize = 3 + Math.sin(ring.pulse) * 2;
+                    ctx.strokeStyle = '#00ffaa';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(ring.x, ring.y, ring.radius + pulseSize, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Glow effect
+                    ctx.shadowColor = '#00ffaa';
+                    ctx.shadowBlur = 15;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+            });
+            
+            // Draw fireballs
+            gameObjects.fireballs.forEach(fireball => {
+                // Fireball gradient
+                const gradient = ctx.createRadialGradient(
+                    fireball.x, fireball.y, 0,
+                    fireball.x, fireball.y, fireball.radius
+                );
+                gradient.addColorStop(0, '#ffaa00');
+                gradient.addColorStop(0.7, '#ff5500');
+                gradient.addColorStop(1, '#ff0000');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(fireball.x, fireball.y, fireball.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Flame effect
+                for (let i = 0; i < 5; i++) {
+                    const angle = Date.now() / 200 + i * Math.PI * 0.4;
+                    const flameX = fireball.x + Math.cos(angle) * fireball.radius * 1.2;
+                    const flameY = fireball.y + Math.sin(angle) * fireball.radius * 1.2;
+                    const flameSize = fireball.radius * 0.8;
+                    
+                    const flameGradient = ctx.createRadialGradient(
+                        flameX, flameY, 0,
+                        flameX, flameY, flameSize
+                    );
+                    flameGradient.addColorStop(0, '#ffff00');
+                    flameGradient.addColorStop(1, 'rgba(255, 100, 0, 0)');
+                    
+                    ctx.fillStyle = flameGradient;
+                    ctx.beginPath();
+                    ctx.arc(flameX, flameY, flameSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
+            // Draw bombs
+            gameObjects.bombs.forEach(bomb => {
+                if (bomb.active) {
+                    // Bomb body
+                    ctx.fillStyle = '#333333';
+                    ctx.beginPath();
+                    ctx.arc(bomb.x, bomb.y, bomb.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Fuse
+                    ctx.strokeStyle = '#8b7355';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(bomb.x + bomb.radius * 0.7, bomb.y - bomb.radius * 0.7);
+                    ctx.lineTo(bomb.x + bomb.radius * 1.5, bomb.y - bomb.radius * 1.5);
+                    ctx.stroke();
+                    
+                    // Spark on fuse
+                    const sparkTime = Date.now() / 100;
+                    const sparkX = bomb.x + bomb.radius * 0.7 + (bomb.radius * 0.8) * (bomb.fuse % 100 / 100);
+                    const sparkY = bomb.y - bomb.radius * 0.7 - (bomb.radius * 0.8) * (bomb.fuse % 100 / 100);
+                    
+                    ctx.fillStyle = '#ff5500';
+                    ctx.beginPath();
+                    ctx.arc(sparkX, sparkY, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
+            // Draw magnets
+            gameObjects.magnets.forEach(magnet => {
+                if (magnet.active) {
+                    // Magnet body
+                    const magnetGradient = ctx.createLinearGradient(
+                        magnet.x - magnet.radius, magnet.y,
+                        magnet.x + magnet.radius, magnet.y
+                    );
+                    magnetGradient.addColorStop(0, '#ff5555');
+                    magnetGradient.addColorStop(0.5, '#ffffff');
+                    magnetGradient.addColorStop(1, '#5555ff');
+                    
+                    ctx.fillStyle = magnetGradient;
+                    ctx.beginPath();
+                    ctx.arc(magnet.x, magnet.y, magnet.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // N and S indicators
+                    ctx.fillStyle = '#000000';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('N', magnet.x, magnet.y - 8);
+                    ctx.fillText('S', magnet.x, magnet.y + 8);
+                    
+                    // Magnetic field lines
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.lineWidth = 1;
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i / 8) * Math.PI * 2;
+                        const startX = magnet.x + Math.cos(angle) * magnet.radius * 1.2;
+                        const startY = magnet.y + Math.sin(angle) * magnet.radius * 1.2;
+                        const endX = magnet.x + Math.cos(angle) * magnet.radius * 3;
+                        const endY = magnet.y + Math.sin(angle) * magnet.radius * 3;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        ctx.lineTo(endX, endY);
+                        ctx.stroke();
+                    }
+                }
+            });
+            
+            // Draw doors
+            gameObjects.doors.forEach(door => {
+                if (door.locked) {
+                    ctx.fillStyle = '#aa3333';
+                } else {
+                    ctx.fillStyle = '#33aa33';
+                }
+                ctx.fillRect(door.x, door.y, door.width, door.height);
+                
+                // Door details
+                ctx.fillStyle = door.locked ? '#ff5555' : '#55ff55';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(door.locked ? 'LOCKED' : 'OPEN', door.x + door.width/2, door.y + door.height/2);
+                
+                // Circuit symbol on door
+                ctx.strokeStyle = '#ffcc00';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(door.x + 20, door.y + 20);
+                ctx.lineTo(door.x + door.width - 20, door.y + 20);
+                ctx.moveTo(door.x + 20, door.y + door.height - 20);
+                ctx.lineTo(door.x + door.width - 20, door.y + door.height - 20);
+                ctx.stroke();
+            });
+            
+            // Draw player (robot)
+            drawRobot();
+            
+            // Draw invulnerability effect
+            if (gameState.invulnerable) {
+                const time = Date.now() / 100;
+                const pulse = Math.sin(time) * 5 + 10;
+                
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(
+                    gameObjects.player.x + gameObjects.player.width/2,
+                    gameObjects.player.y + gameObjects.player.height/2,
+                    gameObjects.player.width/2 + pulse, 0, Math.PI * 2
+                );
+                ctx.stroke();
+                
+                // Shield effect
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 15;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+            
+            // Draw circuit elements in background (decoration)
+            drawCircuitElements();
+        }
+
+        // Draw the robot player
+        function drawRobot() {
+            const { x, y, width, height, facingRight } = gameObjects.player;
+            
+            // Robot body
+            ctx.fillStyle = gameState.invulnerable ? '#00aaff' : '#4fc3ff';
+            ctx.fillRect(x, y, width, height);
+            
+            // Robot head
+            ctx.fillStyle = '#2a8cd0';
+            ctx.fillRect(x + width/4, y - 15, width/2, 20);
+            
+            // Eyes
+            ctx.fillStyle = '#00ff00';
+            const eyeX = facingRight ? x + width * 0.7 : x + width * 0.3;
+            ctx.beginPath();
+            ctx.arc(eyeX, y + height/3, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Mouth (expression changes when invulnerable)
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (gameState.invulnerable) {
+                // Smile when invulnerable
+                ctx.arc(x + width/2, y + height * 0.7, 8, 0, Math.PI);
+            } else {
+                // Straight line otherwise
+                ctx.moveTo(x + width/3, y + height * 0.7);
+                ctx.lineTo(x + width * 2/3, y + height * 0.7);
+            }
+            ctx.stroke();
+            
+            // Arms
+            ctx.fillStyle = '#2a8cd0';
+            const armY = y + height/4;
+            ctx.fillRect(x - 10, armY, 10, 8);
+            ctx.fillRect(x + width, armY, 10, 8);
+            
+            // Legs
+            ctx.fillRect(x + width/4 - 5, y + height, 6, 15);
+            ctx.fillRect(x + width * 3/4 - 5, y + height, 6, 15);
+            
+            // Antenna
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x + width/2, y - 15);
+            ctx.lineTo(x + width/2, y - 30);
+            ctx.stroke();
+            
+            // Antenna ball
+            ctx.fillStyle = '#ff5500';
+            ctx.beginPath();
+            ctx.arc(x + width/2, y - 30, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw circuit elements in background
+        function drawCircuitElements() {
+            const time = Date.now() / 1000;
+            
+            // Draw some floating circuit elements
+            for (let i = 0; i < 5; i++) {
+                const x = (Math.sin(time + i) * 100 + i * 200) % canvas.width;
+                const y = (Math.cos(time * 0.7 + i) * 50 + i * 100) % canvas.height;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                
+                // Different circuit symbols
+                if (i % 3 === 0) {
+                    // Resistor symbol
+                    ctx.strokeStyle = '#ff5555';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-15, 0);
+                    ctx.lineTo(-5, 0);
+                    for (let j = 0; j < 3; j++) {
+                        ctx.rect(-5 + j * 10, -5, 10, 10);
+                    }
+                    ctx.moveTo(25, 0);
+                    ctx.lineTo(15, 0);
+                    ctx.stroke();
+                } else if (i % 3 === 1) {
+                    // Capacitor symbol
+                    ctx.strokeStyle = '#55ff55';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-15, 0);
+                    ctx.lineTo(-5, 0);
+                    ctx.moveTo(5, -10);
+                    ctx.lineTo(5, 10);
+                    ctx.moveTo(-5, -10);
+                    ctx.lineTo(-5, 10);
+                    ctx.moveTo(15, 0);
+                    ctx.lineTo(5, 0);
+                    ctx.stroke();
+                } else {
+                    // Inductor symbol
+                    ctx.strokeStyle = '#5555ff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-15, 0);
+                    ctx.lineTo(-10, 0);
+                    for (let j = 0; j < 4; j++) {
+                        ctx.arc(-5 + j * 5, 0, 5, Math.PI, 0);
+                    }
+                    ctx.moveTo(15, 0);
+                    ctx.lineTo(10, 0);
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        // Create explosion effect
+        function createExplosion(x, y) {
+            // Create particles
+            for (let i = 0; i < 20; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 4;
+                const size = 2 + Math.random() * 4;
+                
+                // Draw explosion particles
+                ctx.fillStyle = `hsl(${Math.random() * 30 + 10}, 100%, 50%)`;
+                ctx.beginPath();
+                ctx.arc(
+                    x + Math.cos(angle) * speed * 10,
+                    y + Math.sin(angle) * speed * 10,
+                    size, 0, Math.PI * 2
+                );
+                ctx.fill();
+            }
+            
+            // Check if player is in explosion radius
+            const dx = gameObjects.player.x + gameObjects.player.width/2 - x;
+            const dy = gameObjects.player.y + gameObjects.player.height/2 - y;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            
+            if (distance < 100 && !gameState.invulnerable) {
+                loseRobot();
+            }
+            
+            playSound('explosion');
+        }
+
+        // Lose a robot
+        function loseRobot() {
+            gameState.robots--;
+            if (gameState.robots > 0) {
+                // Reset player position
+                gameObjects.player.x = 100;
+                gameObjects.player.y = canvas.height - 150;
+                gameObjects.player.velocityX = 0;
+                gameObjects.player.velocityY = 0;
+                gameState.energy = CONFIG.initialEnergy;
+                gameState.invulnerable = false;
+                gameState.invulnerabilityTime = 0;
+            }
+        }
+
+        // Complete level
+        function completeLevel() {
+            gameState.levelComplete = true;
+            gameState.gameRunning = false;
+            
+            // Calculate bonus points (100 per energy unit remaining)
+            const energyBonus = Math.floor(gameState.energy) * 100;
+            gameState.score += energyBonus;
+            
+            levelCompleteText.innerHTML = `
+                You completed Level ${gameState.currentLevel} with ${Math.floor(gameState.energy)} energy remaining!<br>
+                Bonus: ${energyBonus} points!<br>
+                Total Score: ${gameState.score} points
+            `;
+            
+            levelCompleteMessage.style.display = 'block';
+            playSound('levelComplete');
+        }
+
+        // Game over
+        function gameOver() {
+            gameState.gameOver = true;
+            gameState.gameRunning = false;
+            
+            gameOverText.innerHTML = `
+                All robots have been deactivated!<br>
+                Final Score: ${gameState.score} points<br>
+                Levels Completed: ${gameState.currentLevel - 1}
+            `;
+            
+            gameOverMessage.style.display = 'block';
+            playSound('gameOver');
+        }
+
+        // Play sound effect
+        function playSound(type) {
+            if (!gameState.soundEnabled) return;
+            
+            // In a real implementation, you would play actual audio files
+            // For this demo, we'll just log the sound event
+            console.log(`Playing sound: ${type}`);
+            
+            // You could add Web Audio API code here to play actual sounds
+            // Example:
+            // const audio = new Audio(`sounds/${type}.mp3`);
+            // audio.volume = 0.5;
+            // audio.play();
+        }
+
+        // Event Listeners
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    input.left = true;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    input.right = true;
+                    break;
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    input.up = true;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    input.down = true;
+                    break;
+                case ' ':
+                    input.jump = true;
+                    input.space = true;
+                    e.preventDefault(); // Prevent space bar from scrolling
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    input.left = false;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    input.right = false;
+                    break;
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    input.up = false;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    input.down = false;
+                    break;
+                case ' ':
+                    input.jump = false;
+                    input.space = false;
+                    break;
+            }
+        });
+
+        // Mobile controls
+        mobileJump.addEventListener('touchstart', (e) => {
+            input.jump = true;
+            e.preventDefault();
+        });
+
+        mobileJump.addEventListener('touchend', () => {
+            input.jump = false;
+        });
+
+        mobileLeft.addEventListener('touchstart', () => {
+            input.left = true;
+        });
+
+        mobileLeft.addEventListener('touchend', () => {
+            input.left = false;
+        });
+
+        mobileRight.addEventListener('touchstart', () => {
+            input.right = true;
+        });
+
+        mobileRight.addEventListener('touchend', () => {
+            input.right = false;
+        });
+
+        mobileUp.addEventListener('touchstart', () => {
+            input.up = true;
+        });
+
+        mobileUp.addEventListener('touchend', () => {
+            input.up = false;
+        });
+
+        mobileDown.addEventListener('touchstart', () => {
+            input.down = true;
+        });
+
+        mobileDown.addEventListener('touchend', () => {
+            input.down = false;
+        });
+
+        // Joystick controls
+        let joystickCenterX = 0;
+        let joystickCenterY = 0;
+        let joystickRadius = 0;
+
+        function initJoystick() {
+            const rect = joystick.getBoundingClientRect();
+            joystickCenterX = rect.left + rect.width / 2;
+            joystickCenterY = rect.top + rect.height / 2;
+            joystickRadius = rect.width / 2 - 30;
+        }
+
+        joystickHandle.addEventListener('mousedown', startJoystickControl);
+        joystickHandle.addEventListener('touchstart', startJoystickControl);
+
+        function startJoystickControl(e) {
+            e.preventDefault();
+            gameState.joystickActive = true;
+            document.addEventListener('mousemove', moveJoystick);
+            document.addEventListener('touchmove', moveJoystick);
+            document.addEventListener('mouseup', endJoystickControl);
+            document.addEventListener('touchend', endJoystickControl);
+        }
+
+        function moveJoystick(e) {
+            if (!gameState.joystickActive) return;
+            
+            e.preventDefault();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const dx = clientX - joystickCenterX;
+            const dy = clientY - joystickCenterY;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            
+            let moveX = dx;
+            let moveY = dy;
+            
+            if (distance > joystickRadius) {
+                moveX = (dx / distance) * joystickRadius;
+                moveY = (dy / distance) * joystickRadius;
+            }
+            
+            // Update joystick handle position
+            joystickHandle.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            
+            // Update input based on joystick position
+            const threshold = joystickRadius / 3;
+            
+            input.left = moveX < -threshold;
+            input.right = moveX > threshold;
+            input.up = moveY < -threshold;
+            input.down = moveY > threshold;
+            input.jump = distance > joystickRadius * 0.8 && moveY < -threshold;
+        }
+
+        function endJoystickControl() {
+            gameState.joystickActive = false;
+            joystickHandle.style.transform = 'translate(-50%, -50%)';
+            
+            input.left = false;
+            input.right = false;
+            input.up = false;
+            input.down = false;
+            input.jump = false;
+            
+            document.removeEventListener('mousemove', moveJoystick);
+            document.removeEventListener('touchmove', moveJoystick);
+            document.removeEventListener('mouseup', endJoystickControl);
+            document.removeEventListener('touchend', endJoystickControl);
+        }
+
+        // Submit answer
+        submitAnswerBtn.addEventListener('click', () => {
+            if (gameState.questionAnswered || gameState.selectedOption === undefined) return;
+            
+            const options = document.querySelectorAll('.option');
+            const isCorrect = gameState.selectedOption === gameState.currentQuestion.correct;
+            
+            // Mark correct/incorrect answers
+            options.forEach((option, index) => {
+                if (index === gameState.currentQuestion.correct) {
+                    option.classList.add('correct');
+                } else if (index === gameState.selectedOption && !isCorrect) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            gameState.questionAnswered = true;
+            submitAnswerBtn.disabled = true;
+            
+            if (isCorrect) {
+                // Unlock door
+                gameObjects.doors[0].locked = false;
+                gameState.score += 500; // Bonus for correct answer
+                playSound('correct');
+            } else {
+                // Penalty for wrong answer
+                gameState.energy -= 20;
+                if (gameState.energy < 0) gameState.energy = 0;
+                playSound('wrong');
+            }
+            
+            updateUI();
+        });
+
+        // Sound toggle
+        soundToggle.addEventListener('click', () => {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            soundIcon.className = gameState.soundEnabled ? 
+                'fas fa-volume-up sound-icon' : 
+                'fas fa-volume-mute sound-icon';
+        });
+
+        // Game control buttons
+        startButton.addEventListener('click', () => {
+            startMessage.style.display = 'none';
+            gameState.gameRunning = true;
+            gameLoop();
+        });
+
+        nextLevelButton.addEventListener('click', () => {
+            levelCompleteMessage.style.display = 'none';
+            if (gameState.currentLevel < CONFIG.levels) {
+                gameState.currentLevel++;
+                loadLevel(gameState.currentLevel);
+                gameState.gameRunning = true;
+                gameLoop();
+            } else {
+                // Game completed
+                gameOverText.innerHTML = `
+                    Congratulations! You completed all ${CONFIG.levels} levels!<br>
+                    Final Score: ${gameState.score} points<br>
+                    You've mastered the Circuit Factory!
+                `;
+                gameOverMessage.style.display = 'block';
+            }
+        });
+
+        restartButton.addEventListener('click', initGame);
+
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            initJoystick();
+        });
+
+        // Initialize everything
+        initGame();
+        initJoystick();
+        window.addEventListener('load', initJoystick);
+    </script>
+</body>
+</html>
