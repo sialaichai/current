@@ -444,17 +444,74 @@ class Game {
     });
   }
 
-  createCollectibles(level) {
-    const pillCount = 15 + level * 2;
-    for (let i = 0; i < pillCount; i++) {
-      const platform = this.platforms[i % this.platforms.length];
-      this.powerPills.push({
-        x: platform.x + 20 + Math.random() * (platform.width - 40),
+createCollectibles(level) {
+  // Power pills
+  const pillCount = 15 + level * 2;
+  for (let i = 0; i < pillCount; i++) {
+    const platform = this.platforms[i % this.platforms.length];
+    this.powerPills.push({
+      x: platform.x + 20 + Math.random() * (platform.width - 40),
+      y: platform.y - 15,
+      radius: 8,
+      collected: false
+    });
+  }
+
+  // Rings
+  const ringCount = 3 + Math.floor(level / 4);
+  for (let i = 0; i < ringCount; i++) {
+    const platform = this.platforms[Math.min(i + 2, this.platforms.length - 1)];
+    this.rings.push({
+      x: platform.x + platform.width / 2,
+      y: platform.y - 30,
+      radius: 15,
+      collected: false,
+      pulse: 0
+    });
+  }
+
+  // 🔥 Fireballs — START FROM RIGHT, MOVE LEFT INITIALLY
+  const fireballCount = 2 + Math.floor(level / 3);
+  for (let i = 0; i < fireballCount; i++) {
+    const platform = this.platforms[i % this.platforms.length];
+    this.fireballs.push({
+      x: platform.x + platform.width - 30,   // ← Start near RIGHT edge
+      y: platform.y - 20,
+      radius: 15,
+      speed: 1 + Math.random() * 2,
+      direction: -1,                         // ← Always start moving LEFT
+      minX: platform.x + 20,
+      maxX: platform.x + platform.width - 20
+    });
+  }
+
+  // Bombs (level 8+)
+  if (level >= 8) {
+    for (let i = 0; i < Math.min(3, this.platforms.length - 2); i++) {
+      const platform = this.platforms[i + 2];
+      this.bombs.push({
+        x: platform.x + platform.width / 2,
         y: platform.y - 15,
-        radius: 8,
-        collected: false
+        radius: 12,
+        active: true,
+        fuse: 300 + Math.random() * 300
       });
     }
+  }
+
+  // Magnets (level 12+)
+  if (level >= 12) {
+    for (let i = 0; i < 2; i++) {
+      this.magnets.push({
+        x: 200 + i * 400,
+        y: 200,
+        radius: 25,
+        strength: 0.5,
+        active: true
+      });
+    }
+  }
+}
 
     const ringCount = 3 + Math.floor(level / 4);
     for (let i = 0; i < ringCount; i++) {
