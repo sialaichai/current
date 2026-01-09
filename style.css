@@ -143,10 +143,7 @@ h1 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
   animation: energyShine 2s infinite;
 }
 @keyframes energyShine {
@@ -268,15 +265,9 @@ h1 {
   font-size: 2.5rem;
   margin-bottom: 10px;
 }
-.power-up.ring .power-up-icon {
-  color: #00ffaa;
-}
-.power-up.invulnerable .power-up-icon {
-  color: #ffcc00;
-}
-.power-up.bomb .power-up-icon {
-  color: #ff5555;
-}
+.power-up.ring .power-up-icon { color: #00ffaa; }
+.power-up.invulnerable .power-up-icon { color: #ffcc00; }
+.power-up.bomb .power-up-icon { color: #ff5555; }
 .power-up-name {
   font-size: 0.9rem;
   color: #a0d0ff;
@@ -365,7 +356,7 @@ h1 {
   transform: none;
 }
 
-/* Game Messages (for level complete, game over, pause) */
+/* Game Messages (Level Complete, Game Over, Pause) */
 .game-message {
   position: fixed;
   top: 50%;
@@ -396,14 +387,15 @@ h1 {
   color: #e0f0ff;
   line-height: 1.6;
 }
-.message-buttons {
+.message-buttons,
+.pause-actions {
   display: flex;
   justify-content: center;
   gap: 20px;
   margin-top: 30px;
 }
 
-/* START SCREEN — now in normal flow */
+/* START SCREEN — Normal document flow, scrollable */
 .start-screen {
   width: 90%;
   max-width: 1000px;
@@ -583,9 +575,6 @@ h1 {
   width: 50px;
   text-align: center;
 }
-.score-details {
-  flex: 1;
-}
 .score-details strong {
   display: block;
   color: #fff;
@@ -663,38 +652,20 @@ h1 {
   color: #00ffaa;
 }
 
-/* Responsive adjustments */
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .start-screen {
     padding: 20px 15px;
     width: 95%;
   }
-  .instructions-container {
-    gap: 20px;
-  }
-  .scoring-grid {
-    grid-template-columns: 1fr;
-  }
-  .education-levels {
-    flex-direction: column;
-  }
-  .level-badge {
-    min-width: auto;
-  }
-  .start-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-  .btn-large {
-    width: 100%;
-    max-width: 300px;
-  }
-  .game-container {
-    grid-template-columns: 1fr;
-  }
-  #game-canvas-container {
-    height: 500px;
-  }
+  .instructions-container { gap: 20px; }
+  .scoring-grid { grid-template-columns: 1fr; }
+  .education-levels { flex-direction: column; }
+  .level-badge { min-width: auto; }
+  .start-actions { flex-direction: column; align-items: center; }
+  .btn-large { width: 100%; max-width: 300px; }
+  .game-container { grid-template-columns: 1fr; }
+  #game-canvas-container { height: 500px; }
   .mobile-controls {
     display: flex;
     position: absolute;
@@ -705,8 +676,7 @@ h1 {
     justify-content: space-between;
     pointer-events: auto;
   }
-  .mobile-btn,
-  .mobile-arrow {
+  .mobile-btn, .mobile-arrow {
     width: 70px;
     height: 70px;
     background: rgba(40, 80, 140, 0.8);
@@ -729,16 +699,14 @@ h1 {
     min-width: 90%;
     padding: 30px 20px;
   }
-  .message-buttons {
+  .message-buttons, .pause-actions {
     flex-direction: column;
     gap: 10px;
   }
-  .controls-panel {
-    order: -1;
-  }
+  .controls-panel { order: -1; }
 }
 
-/* Initial hidden states */
+/* Initial Visibility */
 #game-canvas-container,
 .controls-panel {
   display: none;
