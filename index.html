@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Robot: Circuit Factory Adventure</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-robot"></i> Mr. Robot: Circuit Factory Adventure</h1>
+            <p class="tagline">Navigate the factory, collect power pills, solve circuit puzzles, and avoid fireballs!</p>
+        </header>
+
+        <div class="game-container">
+            <div id="game-canvas-container">
+                <canvas id="game-canvas"></canvas>
+                
+                <!-- Game UI Overlay -->
+                <div class="game-ui">
+                    <div class="status-bar">
+                        <div class="robots-left">
+                            <i class="fas fa-robot robot-icon"></i>
+                            <span class="robot-count" id="robot-count">4</span>
+                        </div>
+                        
+                        <div class="energy-container">
+                            <div class="energy-label">
+                                <span>ENERGY</span>
+                                <span id="energy-value">100</span>
+                            </div>
+                            <div class="energy-bar">
+                                <div class="energy-fill" id="energy-fill"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="score-display">
+                            <span id="score">0</span> pts
+                        </div>
+                    </div>
+                    
+                    <div class="level-info">
+                        Level <span id="level">1</span>: <span id="level-name">Basic Circuits</span>
+                    </div>
+                    
+                    <!-- Instructions Panel -->
+                    <div class="instructions-panel" id="instructions-panel">
+                        <h3><i class="fas fa-info-circle"></i> How to Play</h3>
+                        <div class="instruction-item">
+                            <div class="instruction-icon">🤖</div>
+                            <div class="instruction-text">You control the <strong>ROBOT</strong> (blue character)</div>
+                        </div>
+                        <div class="instruction-item">
+                            <div class="instruction-icon">⚪</div>
+                            <div class="instruction-text">Collect <strong>WHITE PILLS</strong> (10 points each)</div>
+                        </div>
+                        <div class="instruction-item">
+                            <div class="instruction-icon">💍</div>
+                            <div class="instruction-text">Collect <strong>RINGS</strong> for invulnerability (100 points)</div>
+                        </div>
+                        <div class="instruction-item">
+                            <div class="instruction-icon">🔥</div>
+                            <div class="instruction-text">Avoid <strong>FIREBALLS</strong> or destroy them when invulnerable</div>
+                        </div>
+                        <div class="instruction-item">
+                            <div class="instruction-icon">🚪</div>
+                            <div class="instruction-text">Reach the <strong>GREEN DOOR</strong> to complete the level</div>
+                        </div>
+                        <button class="btn btn-small" id="hide-instructions">Got It!</button>
+                    </div>
+                </div>
+                
+                <!-- Sound Toggle -->
+                <div class="sound-toggle" id="sound-toggle">
+                    <i class="fas fa-volume-up sound-icon" id="sound-icon"></i>
+                </div>
+                
+                <!-- Mobile Controls -->
+                <div class="mobile-controls">
+                    <div class="mobile-btn" id="mobile-jump">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="mobile-arrows">
+                        <div></div>
+                        <div class="mobile-arrow" id="mobile-up">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div></div>
+                        <div class="mobile-arrow" id="mobile-left">
+                            <i class="fas fa-arrow-left"></i>
+                        </div>
+                        <div class="mobile-arrow" id="mobile-down">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="mobile-arrow" id="mobile-right">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Game Controls Panel -->
+            <div class="controls-panel">
+                <h2 class="panel-title">Circuit Challenge</h2>
+                
+                <div class="circuit-question">
+                    <div class="question-text" id="question-text">
+                        What is the unit of electrical resistance?
+                    </div>
+                    
+                    <div class="options-container" id="options-container">
+                        <!-- Options will be inserted here -->
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-primary" id="submit-answer">
+                            <i class="fas fa-check-circle"></i> Submit Answer
+                        </button>
+                        <button class="btn btn-secondary" id="show-instructions-btn" style="margin-left: 10px;">
+                            <i class="fas fa-question-circle"></i> Help
+                        </button>
+                    </div>
+                </div>
+                
+                <h2 class="panel-title">Power Ups & Status</h2>
+                
+                <div class="power-ups">
+                    <div class="power-up ring">
+                        <div class="power-up-icon">
+                            <i class="fas fa-ring"></i>
+                        </div>
+                        <div class="power-up-name">Circuit Ring</div>
+                        <div class="power-up-count" id="ring-count">0</div>
+                    </div>
+                    
+                    <div class="power-up invulnerable">
+                        <div class="power-up-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="power-up-name">Invulnerability</div>
+                        <div class="power-up-count" id="inv-time">0s</div>
+                    </div>
+                    
+                    <div class="power-up bomb">
+                        <div class="power-up-icon">
+                            <i class="fas fa-bomb"></i>
+                        </div>
+                        <div class="power-up-name">Circuit Bomb</div>
+                        <div class="power-up-count" id="bomb-count">0</div>
+                    </div>
+                </div>
+                
+                <div class="controls-instruction">
+                    <div class="controls-title">
+                        <i class="fas fa-gamepad"></i> Controls
+                    </div>
+                    
+                    <div class="controls-grid">
+                        <div>
+                            <div class="control-key">← →</div>
+                            <div class="control-action">Move Left/Right</div>
+                        </div>
+                        <div>
+                            <div class="control-key">SPACE</div>
+                            <div class="control-action">Jump</div>
+                        </div>
+                        <div>
+                            <div class="control-key">↑ ↓</div>
+                            <div class="control-action">Climb Ladders</div>
+                        </div>
+                        <div>
+                            <div class="control-key">A / D</div>
+                            <div class="control-action">Move Left/Right</div>
+                        </div>
+                        <div>
+                            <div class="control-key">W / S</div>
+                            <div class="control-action">Climb Up/Down</div>
+                        </div>
+                        <div>
+                            <div class="control-key">P</div>
+                            <div class="control-action">Pause Game</div>
+                        </div>
+                    </div>
+                    
+                    <div class="joystick-container">
+                        <div class="joystick" id="joystick">
+                            <div class="joystick-handle" id="joystick-handle"></div>
+                        </div>
+                        <div class="joystick-label">Virtual Joystick</div>
+                    </div>
+                </div>
+                
+                <div class="object-legend">
+                    <h3><i class="fas fa-list"></i> Game Objects</h3>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #4fc3ff;"></div>
+                        <div class="legend-text">Player (Robot)</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ffffff; border: 2px solid #ccc;"></div>
+                        <div class="legend-text">Power Pill (+10 pts)</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="border: 3px solid #00ffaa;"></div>
+                        <div class="legend-text">Ring (Invulnerability)</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ff5500;"></div>
+                        <div class="legend-text">Fireball (Danger!)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Messages -->
+        <div class="game-message" id="start-message">
+            <h2 class="message-title">Mr. Robot's Circuit Factory</h2>
+            <div class="player-highlight">
+                <div class="player-demo">
+                    <div class="demo-robot"></div>
+                    <div class="demo-label">THIS IS YOU!</div>
+                </div>
+            </div>
+            <p class="message-text">
+                <strong>OBJECTIVE:</strong> Guide your robot through the factory, collecting power pills 
+                while avoiding hazards. Solve circuit questions to unlock doors.<br><br>
+                
+                <strong>KEY FEATURES:</strong><br>
+                • Energy drains over time - complete levels quickly!<br>
+                • 4 robot lives - lose one if you fall or touch fireballs<br>
+                • Collect rings for temporary invulnerability<br>
+                • 22 levels with increasing difficulty<br>
+                • Circuit questions test your electrical knowledge
+            </p>
+            <div class="message-buttons">
+                <button class="btn btn-primary" id="start-button">
+                    <i class="fas fa-play"></i> Start Game
+                </button>
+                <button class="btn btn-secondary" id="view-controls">
+                    <i class="fas fa-gamepad"></i> View Controls
+                </button>
+            </div>
+        </div>
+        
+        <div class="game-message" id="level-complete-message" style="display: none;">
+            <h2 class="message-title">Level Complete!</h2>
+            <p class="message-text" id="level-complete-text">
+                You completed Level 1 with 85 energy remaining!<br>
+                Bonus: 8500 points!
+            </p>
+            <div class="message-buttons">
+                <button class="btn btn-primary" id="next-level-button">
+                    <i class="fas fa-forward"></i> Next Level
+                </button>
+                <button class="btn btn-secondary" id="level-stats">
+                    <i class="fas fa-chart-bar"></i> View Stats
+                </button>
+            </div>
+        </div>
+        
+        <div class="game-message" id="game-over-message" style="display: none;">
+            <h2 class="message-title">Factory Shutdown!</h2>
+            <p class="message-text" id="game-over-text">
+                All robots have been deactivated!<br>
+                Final Score: 0 points
+            </p>
+            <div class="message-buttons">
+                <button class="btn btn-primary" id="restart-button">
+                    <i class="fas fa-redo"></i> Restart Game
+                </button>
+                <button class="btn btn-secondary" id="main-menu">
+                    <i class="fas fa-home"></i> Main Menu
+                </button>
+            </div>
+        </div>
+        
+        <!-- Pause Menu -->
+        <div class="game-message" id="pause-message" style="display: none;">
+            <h2 class="message-title">Game Paused</h2>
+            <p class="message-text">
+                Game is paused. Press P or click Resume to continue.
+            </p>
+            <div class="message-buttons">
+                <button class="btn btn-primary" id="resume-button">
+                    <i class="fas fa-play"></i> Resume
+                </button>
+                <button class="btn btn-secondary" id="pause-to-menu">
+                    <i class="fas fa-home"></i> Main Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
