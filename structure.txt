@@ -1,0 +1,7 @@
+mr-robot-circuit-game/
+├── index.html
+├── style.css
+├── game.js
+├── questions.js
+├── sounds.js (optional - for future audio)
+└── README.md
