@@ -513,32 +513,7 @@ createCollectibles(level) {
   }
 }
 
-    const ringCount = 3 + Math.floor(level / 4);
-    for (let i = 0; i < ringCount; i++) {
-      const platform = this.platforms[Math.min(i + 2, this.platforms.length - 1)];
-      this.rings.push({
-        x: platform.x + platform.width/2,
-        y: platform.y - 30,
-        radius: 15,
-        collected: false,
-        pulse: 0
-      });
-    }
-
-    const fireballCount = 2 + Math.floor(level / 3);
-    for (let i = 0; i < fireballCount; i++) {
-      const platform = this.platforms[i % this.platforms.length];
-      this.fireballs.push({
-        x: platform.x + 30,
-        y: platform.y - 20,
-        radius: 15,
-        speed: 1 + Math.random() * 2,
-        direction: Math.random() > 0.5 ? 1 : -1,
-        minX: platform.x + 20,
-        maxX: platform.x + platform.width - 20
-      });
-    }
-
+    
     if (level >= 8) {
       for (let i = 0; i < Math.min(3, this.platforms.length - 2); i++) {
         const platform = this.platforms[i + 2];
