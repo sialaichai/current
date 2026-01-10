@@ -455,22 +455,39 @@ h1 {
   border: 3px solid #00a0ff;
   box-shadow: 0 0 20px rgba(0, 160, 255, 0.5);
 }
+/* ROBOT DEMO ON START SCREEN — CENTERED */
+.demo-robot {
+  width: 100px;
+  height: 150px;
+  background: linear-gradient(145deg, #4fc3ff, #2a8cd0);
+  border-radius: 12px;
+  margin: 0 auto 15px;
+  position: relative;
+  border: 3px solid #00a0ff;
+  box-shadow: 0 0 20px rgba(0, 160, 255, 0.5);
+}
+
+/* Head (centered above body) */
 .demo-robot::before {
   content: '';
   position: absolute;
-  top: -20px;
-  left: 25px;
-  width: 50px;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%); /* ← CENTER IT */
+  width: 60px;
   height: 30px;
   background: #2a8cd0;
   border-radius: 8px;
-  border: 2px solid #00a0ff;
+  border: 3px solid #00a0ff;
 }
+
+/* Eye (centered on head/body) */
 .demo-robot::after {
   content: '';
   position: absolute;
   top: 40px;
-  left: 35px;
+  left: 50%;
+  transform: translateX(-50%); /* ← CENTER IT */
   width: 30px;
   height: 30px;
   background: #00ff00;
