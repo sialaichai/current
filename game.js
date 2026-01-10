@@ -475,11 +475,11 @@ createCollectibles(level) {
   for (let i = 0; i < fireballCount; i++) {
     const platform = this.platforms[i % this.platforms.length];
     this.fireballs.push({
-      x: platform.x + platform.width - 30,   // ← Start near RIGHT edge
+      x: platform.x + platform.width - 30,   // ← Right side
       y: platform.y - 20,
       radius: 15,
       speed: 1 + Math.random() * 2,
-      direction: -1,                         // ← Always start moving LEFT
+      direction: -1,                         // ← Move left
       minX: platform.x + 20,
       maxX: platform.x + platform.width - 20
     });
@@ -512,7 +512,6 @@ createCollectibles(level) {
     }
   }
 }
-
     
     if (level >= 8) {
       for (let i = 0; i < Math.min(3, this.platforms.length - 2); i++) {
