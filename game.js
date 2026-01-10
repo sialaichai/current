@@ -550,6 +550,8 @@ createCollectibles(level) {
   }
 
   loadQuestion() {
+    const overlay = document.getElementById('question-overlay');
+    if (overlay) overlay.style.display = 'block';
     this.state.currentQuestion = getRandomQuestion(this.state.currentLevel);
     this.state.isQuestionActive = true; // ← Question is now active
     if (this.domElements.questionText && this.state.currentQuestion) {
@@ -1106,6 +1108,8 @@ update() {
   }
 
   submitAnswer() {
+    const overlay = document.getElementById('question-overlay');
+    if (overlay) overlay.style.display = 'none';
     if (this.state.questionAnswered || this.state.selectedOption === null) return;
     const options = document.querySelectorAll('.option');
     const isCorrect = this.state.selectedOption === this.state.currentQuestion.correct;
