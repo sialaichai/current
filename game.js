@@ -733,18 +733,19 @@ update() {
 
 checkDoorCollision() {
   this.doors.forEach(door => {
-    if (door.locked && this.isCollidingRectRect(
+    const touching = this.isCollidingRectRect(
       this.player.x, this.player.y, this.player.width, this.player.height,
       door.x, door.y, door.width, door.height
-    )) {
-      // Only show question if not already answered
-      if (!this.state.questionAnswered && !this.state.currentQuestion) {
+    );
+
+    if (touching) {
+      if (door.locked && !this.state.questionAnswered && !this.state.currentQuestion) {
         this.loadQuestion();
-      }
-      else if (!door.locked && this.isCollidingRectRect(this.player.x, this.player.y, this.player.width, this.player.height, door.x, door.y, door.width, door.height)) {
+      } else if (!door.locked) {
         this.completeLevel();
       }
-      });
+    }
+  });
 }
 
   checkGameConditions() {
