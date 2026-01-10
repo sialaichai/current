@@ -403,7 +403,7 @@ class Game {
     this.player = new Player(100, floorY - 100);
 
     this.updateLevelDisplay(level);
-    this.loadQuestion();
+    //this.loadQuestion();
     this.state.resetForNewLevel();
     this.updateUI();
   }
@@ -731,16 +731,21 @@ update() {
     }
   }
 
-  checkDoorCollision() {
-    this.doors.forEach(door => {
-      if (!door.locked && this.isCollidingRectRect(
-        this.player.x, this.player.y, this.player.width, this.player.height,
-        door.x, door.y, door.width, door.height
-      )) {
-        this.completeLevel();
+checkDoorCollision() {
+  this.doors.forEach(door => {
+    if (door.locked && this.isCollidingRectRect(
+      this.player.x, this.player.y, this.player.width, this.player.height,
+      door.x, door.y, door.width, door.height
+    )) {
+      // Only show question if not already answered
+      if (!this.state.questionAnswered && !this.state.currentQuestion) {
+        this.loadQuestion();
       }
-    });
-  }
+    } else if (!door.locked && this.isCollidingRectRect(...)) {
+      this.completeLevel();
+    }
+  });
+}
 
   checkGameConditions() {
     const allPillsCollected = this.powerPills.every(pill => pill.collected);
