@@ -36,6 +36,7 @@ class GameState {
     this.soundEnabled = true;
     this.currentQuestion = null;
     this.questionAnswered = false;
+    this.isQuestionActive = true; // ← NEW: true when question is shown
     this.selectedOption = null;
     this.joystickActive = false;
     this.questionsAnswered = 0;
@@ -550,6 +551,7 @@ createCollectibles(level) {
 
   loadQuestion() {
     this.state.currentQuestion = getRandomQuestion(this.state.currentLevel);
+    this.state.isQuestionActive = true; // ← Question is now active
     if (this.domElements.questionText && this.state.currentQuestion) {
       this.domElements.questionText.textContent = this.state.currentQuestion.question;
     }
@@ -609,19 +611,28 @@ createCollectibles(level) {
     requestAnimationFrame(() => this.gameLoop());
   }
 
-  update() {
-    this.player.update(this.input, this.platforms, this.ladders, this.canvas.height);
-    this.updateCollectibles();
+update() {
+  this.player.update(this.input, this.platforms, this.ladders, this.canvas.height);
+  this.updateCollectibles();
+
+  // ⏸️ Freeze enemies and power-ups during question
+  if (!this.state.isQuestionActive) {
     this.updateEnemies();
     this.updatePowerUps();
-    this.checkDoorCollision();
+  }
 
+  this.checkDoorCollision();
+
+  // Optional: Pause energy drain during question?
+  // If you want to pause energy loss, wrap it too:
+  if (!this.state.isQuestionActive) {
     this.state.energy -= CONFIG.energyDrainRate;
     if (this.state.energy <= 0) {
       this.state.energy = 0;
       this.loseRobot();
     }
   }
+}
 
   updateCollectibles() {
     this.powerPills.forEach(pill => {
@@ -1105,6 +1116,7 @@ createCollectibles(level) {
     });
 
     this.state.questionAnswered = true;
+    this.state.isQuestionActive = false; // ← Question phase ended
     this.state.updateStats(isCorrect);
     if (this.domElements.submitAnswerBtn) this.domElements.submitAnswerBtn.disabled = true;
 
