@@ -411,7 +411,18 @@ class Game {
   createLevel(level) {
     const baseY = this.canvas.height - 20;
     this.platforms.push({ x: 0, y: baseY, width: this.canvas.width, height: 20 });
-
+        // Create door — lowered to be reachable
+    const doorY = level === 1 
+      ? this.canvas.height - 300   // Level 1: lower door
+      : 150;                       // Higher levels can be higher
+    
+    this.doors.push({
+      x: this.canvas.width - 150,
+      y: doorY,
+      width: 60,
+      height: 100,
+      locked: true
+    });
     if (level === 1) {
       this.platforms.push({ x: 200, y: baseY - 150, width: 200, height: 20 });
       this.platforms.push({ x: 500, y: baseY - 250, width: 200, height: 20 });
