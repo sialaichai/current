@@ -511,7 +511,7 @@ createCollectibles(level) {
       });
     }
   }
-}
+
     
     if (level >= 8) {
       for (let i = 0; i < Math.min(3, this.platforms.length - 2); i++) {
