@@ -478,7 +478,7 @@ createCollectibles(level) {
       x: platform.x + platform.width - 30,   // ← Right side
       y: platform.y - 20,
       radius: 15,
-      speed: 1 + Math.random() * 2,
+      speed: 0.5 + Math.random() * 0.8,  // ← SLOWER: 0.5 to 1.3 px/frame
       direction: -1,                         // ← Move left
       minX: platform.x + 20,
       maxX: platform.x + platform.width - 20
