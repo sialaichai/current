@@ -392,9 +392,21 @@ h1 {
 
 /* START SCREEN — inherits from .game-message, no extra positioning needed */
 .start-screen {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2000;
   width: 90%;
   max-width: 1000px;
   padding: 30px;
+  background: rgba(0, 0, 0, 0.95);
+  border: 3px solid #00a0ff;
+  border-radius: 15px;
+  box-shadow: 0 0 40px rgba(0, 160, 255, 0.5);
+  overflow-y: auto;
+  max-height: 90vh;
+  display: block; /* Will be toggled by JS */
 }
 .start-header {
   text-align: center;
