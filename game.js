@@ -741,7 +741,10 @@ checkDoorCollision() {
       if (!this.state.questionAnswered && !this.state.currentQuestion) {
         this.loadQuestion();
       }
-    } else if (!door.locked && this.isCollidingRectRect(...)) {
+        else if (!door.locked && this.isCollidingRectRect(
+      this.player.x, this.player.y, this.player.width, this.player.height,
+      door.x, door.y, door.width, door.height
+    )) {
       this.completeLevel();
     }
   });
