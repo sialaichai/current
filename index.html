@@ -14,7 +14,7 @@
 <p class="tagline">Navigate the factory, collect power pills, solve circuit puzzles, and avoid fireballs!</p>
 </header>
 
-<!-- START SCREEN — MUST COME BEFORE GAME CANVAS TO APPEAR ON TOP -->
+<!-- START SCREEN — MUST COME BEFORE GAME CANVAS -->
 <div class="game-message start-screen" id="start-screen">
   <div class="start-header">
     <h2 class="message-title">Mr. Robot's Circuit Factory</h2>
@@ -24,10 +24,8 @@
     <div class="instructions-sidebar">
       <div class="player-highlight">
         <h3><i class="fas fa-robot"></i> YOU ARE THE ROBOT</h3>
-        <div class="player-demo">
-          <div class="demo-robot"></div>
-          <div class="demo-label">THIS IS YOU!</div>
-        </div>
+        <div class="demo-robot"></div>
+        <div class="demo-label">THIS IS YOU!</div>
       </div>
       <div class="quick-controls">
         <h3><i class="fas fa-gamepad"></i> Quick Controls</h3>
@@ -114,7 +112,7 @@
 <div class="game-container">
   <div id="game-canvas-container">
     <canvas id="game-canvas"></canvas>
-    <div class="question-overlay" id="question-overlay"></div>
+    
     <!-- Game UI Overlay -->
     <div class="game-ui">
       <div class="status-bar">
@@ -169,119 +167,69 @@
     </div>
   </div>
 
-  <!-- Game Controls Panel -->
+  <!-- Controls Panel (NO QUESTION HERE) -->
   <div class="controls-panel">
-    <h2 class="panel-title">Circuit Challenge</h2>
-    <div class="circuit-question">
-      <div class="question-text" id="question-text">
-        What is the unit of electrical resistance?
-      </div>
-      <div class="options-container" id="options-container">
-        <!-- Options will be inserted here -->
-      </div>
-      <div style="text-align: center; margin-top: 20px;">
-        <button class="btn btn-primary" id="submit-answer">
-          <i class="fas fa-check-circle"></i> Submit Answer
-        </button>
-      </div>
-    </div>
-
     <h2 class="panel-title">Power Ups & Status</h2>
     <div class="power-ups">
       <div class="power-up ring">
-        <div class="power-up-icon">
-          <i class="fas fa-ring"></i>
-        </div>
+        <div class="power-up-icon"><i class="fas fa-ring"></i></div>
         <div class="power-up-name">Circuit Ring</div>
         <div class="power-up-count" id="ring-count">0</div>
       </div>
       <div class="power-up invulnerable">
-        <div class="power-up-icon">
-          <i class="fas fa-shield-alt"></i>
-        </div>
+        <div class="power-up-icon"><i class="fas fa-shield-alt"></i></div>
         <div class="power-up-name">Invulnerability</div>
         <div class="power-up-count" id="inv-time">0s</div>
       </div>
       <div class="power-up bomb">
-        <div class="power-up-icon">
-          <i class="fas fa-bomb"></i>
-        </div>
+        <div class="power-up-icon"><i class="fas fa-bomb"></i></div>
         <div class="power-up-name">Circuit Bomb</div>
         <div class="power-up-count" id="bomb-count">0</div>
       </div>
     </div>
 
     <div class="controls-instruction">
-      <div class="controls-title">
-        <i class="fas fa-gamepad"></i> Quick Controls
-      </div>
+      <div class="controls-title"><i class="fas fa-gamepad"></i> Quick Controls</div>
       <div class="controls-grid">
-        <div>
-          <div class="control-key">← →</div>
-          <div class="control-action">Move</div>
-        </div>
-        <div>
-          <div class="control-key">SPACE</div>
-          <div class="control-action">Jump</div>
-        </div>
-        <div>
-          <div class="control-key">↑ ↓</div>
-          <div class="control-action">Climb</div>
-        </div>
+        <div><div class="control-key">← →</div><div class="control-action">Move</div></div>
+        <div><div class="control-key">SPACE</div><div class="control-action">Jump</div></div>
+        <div><div class="control-key">↑ ↓</div><div class="control-action">Climb</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Other Game Messages (Keep at bottom) -->
+<!-- Game Messages -->
 <div class="game-message" id="level-complete-message" style="display: none;">
   <h2 class="message-title">Level Complete!</h2>
-  <p class="message-text" id="level-complete-text">
-    You completed Level 1 with 85 energy remaining!<br>
-    Bonus: 8500 points!
-  </p>
+  <p class="message-text" id="level-complete-text"></p>
   <div class="message-buttons">
-    <button class="btn btn-primary" id="next-level-button">
-      <i class="fas fa-forward"></i> Next Level
-    </button>
-    <button class="btn btn-secondary" id="main-menu-button">
-      <i class="fas fa-home"></i> Main Menu
-    </button>
+    <button class="btn btn-primary" id="next-level-button"><i class="fas fa-forward"></i> Next Level</button>
+    <button class="btn btn-secondary" id="main-menu-button"><i class="fas fa-home"></i> Main Menu</button>
   </div>
 </div>
 
 <div class="game-message" id="game-over-message" style="display: none;">
   <h2 class="message-title">Factory Shutdown!</h2>
-  <p class="message-text" id="game-over-text">
-    All robots have been deactivated!<br>
-    Final Score: 0 points
-  </p>
+  <p class="message-text" id="game-over-text"></p>
   <div class="message-buttons">
-    <button class="btn btn-primary" id="restart-button">
-      <i class="fas fa-redo"></i> Restart Game
-    </button>
-    <button class="btn btn-secondary" id="back-to-menu">
-      <i class="fas fa-home"></i> Main Menu
-    </button>
+    <button class="btn btn-primary" id="restart-button"><i class="fas fa-redo"></i> Restart Game</button>
+    <button class="btn btn-secondary" id="back-to-menu"><i class="fas fa-home"></i> Main Menu</button>
   </div>
 </div>
 
 <div class="game-message" id="pause-message" style="display: none;">
   <h2 class="message-title">Game Paused</h2>
   <div class="pause-actions">
-    <button class="btn btn-primary" id="resume-button">
-      <i class="fas fa-play"></i> Resume Game
-    </button>
-    <button class="btn btn-secondary" id="pause-to-menu">
-      <i class="fas fa-home"></i> Main Menu
-    </button>
+    <button class="btn btn-primary" id="resume-button"><i class="fas fa-play"></i> Resume Game</button>
+    <button class="btn btn-secondary" id="pause-to-menu"><i class="fas fa-home"></i> Main Menu</button>
   </div>
 </div>
 
-  <!-- Question Overlay -->
+<!-- QUESTION OVERLAY (NOT IN PANEL) -->
 <div class="question-overlay-bg" id="question-overlay-bg"></div>
 <div class="circuit-question-overlay" id="circuit-question-overlay">
-  <div class="question-text" id="overlay-question-text">What is the unit of resistance?</div>
+  <div class="question-text" id="overlay-question-text"></div>
   <div class="options-container" id="overlay-options-container"></div>
   <div style="text-align: center; margin-top: 20px;">
     <button class="btn btn-primary" id="overlay-submit-answer">
@@ -289,10 +237,9 @@
     </button>
   </div>
 </div>
-  
-<!-- Scripts — ONLY ONCE! -->
+
+<!-- Scripts — ONLY ONCE -->
 <script src="questions.js"></script>
 <script src="game.js"></script>
-
 </body>
 </html>
