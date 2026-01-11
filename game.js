@@ -759,17 +759,18 @@ checkDoorCollision() {
   });
 }
 
-  checkGameConditions() {
-    const allPillsCollected = this.powerPills.every(pill => pill.collected);
-    if (allPillsCollected && this.doors.length > 0 && this.doors[0].locked) {
-      this.doors[0].locked = false;
-      this.playSound('unlock');
-    }
-
-    if (this.state.robots <= 0) {
-      this.gameOver();
-    }
+checkGameConditions() {
+  const allPillsCollected = this.powerPills.every(pill => pill.collected);
+  
+  // Show question ONLY when all pills are collected AND door is still locked
+  if (allPillsCollected && this.doors.length > 0 && this.doors[0].locked && !this.state.currentQuestion) {
+    this.loadQuestion();
   }
+
+  if (this.state.robots <= 0) {
+    this.gameOver();
+  }
+}
 
   draw() {
     this.drawBackground();
